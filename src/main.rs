@@ -2,6 +2,8 @@ use std::io;
 use std::collections::HashMap;
 
 static mut RUNNING:bool = true;
+
+static mut PRINT_ERRORS:bool = true;
 static KEYWORDS: [&str; 2] = ["if", "while"];
 static OPERATORS: [&str; 6] = ["+", "-", "*", "/", "%", "="];
 
@@ -21,7 +23,11 @@ fn main() {
 }
 
 fn print_error(error: &str){
-    eprintln!("\x1b[31m{}\x1b[0m", error);
+    unsafe {
+        if PRINT_ERRORS {
+            eprintln!("\x1b[31m{}\x1b[0m", error);
+        }
+    }
 }
 
 fn next_line() -> Vec<Token>{
@@ -188,6 +194,15 @@ fn runner(tokens: Vec<Token>, variables:  &mut HashMap<String, i64>){
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn setup(){
+        unsafe {
+            RUNNING = true;
+            PRINT_ERRORS = false;
+        }
+    }
+
     #[test]
     fn affectation_test(){
         let mut variables: HashMap<String, i64> = HashMap::new();
