@@ -1,7 +1,6 @@
 use std::io;
 use std::collections::HashMap;
 
-
 static mut RUNNING:bool = true;
 static KEYWORDS: [&str; 2] = ["if", "while"];
 static OPERATORS: [&str; 6] = ["+", "-", "*", "/", "%", "="];
@@ -118,18 +117,70 @@ fn parser(tokens: Vec<Token>){
 
  */
 
+fn variable_exists(variable: &str, variables: &HashMap<String, i64>)->bool{
+    variables.contains_key(variable)
+}
+
+fn get_value(token: &Token, variables: &HashMap<String, i64>) ->Result<i64, String>{
+    if token.token_type == "Identifier"{
+        if variable_exists(&token.token_value, variables){
+            Ok(*variables.get(&token.token_value).unwrap())
+        } else {
+            Err(format!("Variable '{}' not found", token.token_value))
+        }
+    }else if token.token_type == "Number"{
+        Ok(token.token_value.parse::<i64>().unwrap())
+    }else{
+        Err(format!("Invalid token: {}", token.token_value))
+    }
+}
+
 fn runner(tokens: Vec<Token>, variables:  &mut HashMap<String, i64>){
     if tokens[0].token_type == "Identifier" && tokens[1].token_type == "Assigment"{
-        if tokens[2].token_type == "Identifier"{
-            if variables.contains_key(&tokens[2].token_value){
-                variables.insert(tokens[0].token_value.clone(), *variables.get(&tokens[2].token_value).unwrap());
-            } else {
-                print_error(&format!("Variable {} not found", tokens[2].token_value));
-            }
-        }else if tokens[2].token_type == "Number"{
-            variables.insert(tokens[0].token_value.clone(), tokens[2].token_value.parse::<i64>().unwrap());
-        }
+        let mut i = 2;
+        let mut expected_value:bool = true;
+        let mut value:i64 = 0;
+        let mut operator:String;
 
+        while i < tokens.len(){
+            if expected_value{
+                match get_value(&tokens[i], variables) {
+                    Ok(v) => value = v,
+                    Err(e) => {
+                        print_error(&e);
+                        return;
+                    }
+                }
+                expected_value = false;
+            }else{
+                operator = tokens[i].token_value.clone();
+                i += 1;
+                if i == tokens.len(){
+                    print_error("Expected value after operator");
+                    return;
+                }
+                match get_value(&tokens[i], variables) {
+                    Ok(v) => {
+                        if operator == "+"{
+                            value += v;
+                        }else if operator == "-"{
+                            value -= v;
+                        }else if operator == "*"{
+                            value *= v;
+                        }else{
+                            print_error(format!("Invalid operator: '{}'", operator).as_str());
+                            return;
+                        }
+                    },
+                    Err(e) => {
+                        print_error(&e);
+                        return;
+                    }
+                }
+            }
+            i += 1;
+        }
+        variables.insert(tokens[0].token_value.clone(), value);
     }
 }
 
@@ -168,6 +219,14 @@ mod tests {
     }
 
     #[test]
+    fn affectation_with_non_existent_variable(){
+        let mut variables: HashMap<String, i64> = HashMap::new();
+        let tokens = lexer("b = a");
+        runner(tokens, &mut variables);
+        assert_eq!(variable_exists("b", &variables), false);
+    }
+
+    #[test]
     fn non_exchange_value(){
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 5");
@@ -179,6 +238,54 @@ mod tests {
         assert_eq!(variables.get("b").unwrap(), &5);
         assert_eq!(variables.get("a").unwrap(), &8);
     }
+
+    #[test]
+    fn operations_without_variable_test(){
+        let mut variables: HashMap<String, i64> = HashMap::new();
+        let tokens = lexer("a = 4 + 2");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("a").unwrap(), &6);
+        let tokens = lexer("a = 4 - 2");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("a").unwrap(), &2);
+        let tokens = lexer("a = 4 * 2");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("a").unwrap(), &8);
+    }
+
+    #[test]
+    fn operations_with_variable_test(){
+        let mut variables: HashMap<String, i64> = HashMap::new();
+        let tokens = lexer("a = 4");
+        runner(tokens, &mut variables);
+        let tokens = lexer("b = a + 2");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("b").unwrap(), &6);
+        let tokens = lexer("b = a - 2");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("b").unwrap(), &2);
+        let tokens = lexer("b = a * 2");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("b").unwrap(), &8);
+        assert_eq!(variables.get("a").unwrap(), &4);
+    }
+
+    #[test]
+    fn invalid_token_test(){
+        let mut variables: HashMap<String, i64> = HashMap::new();
+        let tokens = lexer("a = 4 + 2 +");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("a"), None);
+    }
+
+    #[test]
+    fn multiple_operations_test(){
+        let mut variables: HashMap<String, i64> = HashMap::new();
+        let tokens = lexer("a = 4 + 2 - 3 + 4");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("a").unwrap(), &7);
+    }
+
 
 }
 
