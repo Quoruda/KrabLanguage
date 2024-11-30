@@ -194,8 +194,6 @@ fn runner(tokens: Vec<Token>, variables:  &mut HashMap<String, i64>){
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
     fn setup(){
         unsafe {
             RUNNING = true;
@@ -205,6 +203,7 @@ mod tests {
 
     #[test]
     fn affectation_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 5");
         runner(tokens, &mut variables);
@@ -213,6 +212,7 @@ mod tests {
 
     #[test]
     fn multiple_affectation_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 5");
         runner(tokens, &mut variables);
@@ -225,6 +225,7 @@ mod tests {
 
     #[test]
     fn affection_with_variable_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 5");
         runner(tokens, &mut variables);
@@ -235,6 +236,7 @@ mod tests {
 
     #[test]
     fn affectation_with_non_existent_variable(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("b = a");
         runner(tokens, &mut variables);
@@ -243,6 +245,7 @@ mod tests {
 
     #[test]
     fn non_exchange_value(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 5");
         runner(tokens, &mut variables);
@@ -256,6 +259,7 @@ mod tests {
 
     #[test]
     fn operations_without_variable_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 4 + 2");
         runner(tokens, &mut variables);
@@ -270,6 +274,7 @@ mod tests {
 
     #[test]
     fn operations_with_variable_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 4");
         runner(tokens, &mut variables);
@@ -287,6 +292,7 @@ mod tests {
 
     #[test]
     fn invalid_token_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 4 + 2 +");
         runner(tokens, &mut variables);
@@ -295,12 +301,22 @@ mod tests {
 
     #[test]
     fn multiple_operations_test(){
+        setup();
         let mut variables: HashMap<String, i64> = HashMap::new();
         let tokens = lexer("a = 4 + 2 - 3 + 4");
         runner(tokens, &mut variables);
         assert_eq!(variables.get("a").unwrap(), &7);
     }
 
-
+    #[test]
+    fn multiple_operations_with_variable_test(){
+        setup();
+        let mut variables: HashMap<String, i64> = HashMap::new();
+        let tokens = lexer("a = 4");
+        runner(tokens, &mut variables);
+        let tokens = lexer("b = a + a - a + a");
+        runner(tokens, &mut variables);
+        assert_eq!(variables.get("b").unwrap(), &8);
+    }
 }
 
