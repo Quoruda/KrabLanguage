@@ -2,19 +2,31 @@ use crate::errors::CustomError;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display};
+use std::ops::Add;
+use crate::value::Value;
 
 
 pub trait Valuable {
-    fn get_value(&self, variables: &HashMap<String, f64>) -> f64;
+    fn get_value(&self, variables: &HashMap<String, Value>) -> Value;
 }
 
-pub(crate) struct Number {
+pub(crate) struct FloatValue {
     value: f64,
 }
 
-impl Number {
-    pub(crate) fn new(value: f64) -> Number {
-        Number{value}
+impl FloatValue {
+    pub(crate) fn new(value: f64) -> FloatValue {
+        FloatValue {value}
+    }
+}
+
+pub struct StringValue {
+    value: String,
+}
+
+impl StringValue {
+    pub fn new(value: &str) -> StringValue {
+        StringValue {value: value.to_string()}
     }
 }
 
@@ -29,17 +41,23 @@ impl Variable {
 }
 
 
-impl Valuable for Number {
-    fn get_value(&self, variables: &HashMap<String, f64>) -> f64 {
-        self.value
+impl Valuable for FloatValue {
+    fn get_value(&self, variables: &HashMap<String, Value>) -> Value {
+        return Value::new_float(self.value);
     }
 }
 
+impl Valuable for StringValue {
+    fn get_value(&self, variables: &HashMap<String, Value>) -> Value {
+        return Value::new_string(&self.value);
+    }
+}
+
+
 impl Valuable for Variable {
-    fn get_value(&self, variables: &HashMap<String, f64>) -> f64 {
-        let result = variables.get(&self.name);
+    fn get_value(&self, variables: &HashMap<String, Value>) -> Value {
         match variables.get(&self.name) {
-            Some(value) => *value,
+            Some(value) => value.clone(),
             None => panic!("Variable not found"),
         }
     }
@@ -61,12 +79,12 @@ impl Operation {
 }
 
 impl Valuable for Operation {
-    fn get_value(&self, variables: &HashMap<String, f64>) -> f64 {
+    fn get_value(&self, variables: &HashMap<String, Value>) -> Value {
         match self.operator {
-            '+' => self.left.get_value(variables) + self.right.get_value(variables),
-            '-' => self.left.get_value(variables) - self.right.get_value(variables),
-            '*' => self.left.get_value(variables) * self.right.get_value(variables),
-            '/' => self.left.get_value(variables) / self.right.get_value(variables),
+            '+' => self.left.get_value(variables).add(&self.right.get_value(variables)),
+            '-' => self.left.get_value(variables).sub(&self.right.get_value(variables)),
+            '*' => self.left.get_value(variables).mul(&self.right.get_value(variables)),
+            '/' => self.left.get_value(variables).div(&self.right.get_value(variables)),
             _ => panic!("Invalid operator"),
         }
     }
@@ -84,22 +102,22 @@ impl Affectation {
 }
 
 pub(crate) trait Instruction {
-    fn execute(&self, variables: &mut HashMap<String, f64>) -> Result<Box<dyn Valuable>,Box<dyn Error>>;
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,Box<dyn Error>>;
 }
 
 impl Instruction for Affectation {
-    fn execute(&self, variables: &mut HashMap<String, f64>) -> Result<Box<dyn Valuable>,Box<dyn Error>> {
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,Box<dyn Error>> {
         variables.insert(self.variable.clone(), self.value.get_value(variables));
 
         //Return None Value
-        Ok(Box::new(Number::new(0.0)))
+        Ok(Value::String("None".to_string()))
     }
 }
 
 impl Instruction for Operation {
-    fn execute(&self, variables: &mut HashMap<String, f64>) -> Result<Box<dyn Valuable>,Box<dyn Error>> {
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,Box<dyn Error>> {
         let value = self.get_value(variables);
-        Ok(Box::new(Number::new(value)))
+        Ok(value)
     }
 }
 
@@ -107,7 +125,7 @@ impl Instruction for Operation {
 pub(crate) struct Interpreter {
     running:bool,
     print_errors:bool,
-    pub(crate) variables:HashMap<String, f64>,
+    pub(crate) variables:HashMap<String, Value>,
 }
 
 impl Interpreter{
@@ -119,7 +137,7 @@ impl Interpreter{
         }
     }
 
-    pub(crate) fn get_variable(&self, name: &str) -> Option<&f64> {
+    pub(crate) fn get_variable(&self, name: &str) -> Option<&Value> {
         self.variables.get(name)
     }
     pub(crate) fn new_for_tests() -> Interpreter{
@@ -131,7 +149,7 @@ impl Interpreter{
     }
 
 
-    pub(crate) fn execute (&mut self, instruction: &dyn Instruction) -> Result<Box<dyn Valuable>,Box<dyn Error>>{
+    pub(crate) fn execute (&mut self, instruction: &dyn Instruction) -> Result<Value,Box<dyn Error>>{
         let result = instruction.execute(&mut self.variables);
         return result;
     }

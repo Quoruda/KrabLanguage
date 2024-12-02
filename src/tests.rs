@@ -1,98 +1,123 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::Interpreter;
-    use crate::interpreter::Affectation;
-    use crate::interpreter::Number;
-    use crate::interpreter::Operation;
-    use crate::interpreter::Variable;
+    use crate::interpreter::{Interpreter, Affectation, Operation, Variable, FloatValue, StringValue};
+    use crate::value::Value;
+    use crate::value::Value::String;
 
     fn get_interpreter() -> Interpreter {
         Interpreter::new_for_tests()
     }
 
     #[test]
-    fn test_affection() {
+    fn test_affectation_number() {
         let mut interpreter = get_interpreter();
-        let instruction = Affectation::new("a", Box::new(Number::new(10.0)));
-        interpreter.execute(&instruction);
-        assert_eq!(interpreter.get_variable("a"), Some(&10.0));
+        let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+        interpreter.execute(&affectation);
+        let result = interpreter.get_variable("a");
+        match result {
+            Some(value) => assert!(value.eq(&Value::new_float(20.0))),
+            None => panic!("Error")
+        }
     }
 
     #[test]
-    fn test_operation() {
+    fn test_affectation_string() {
         let mut interpreter = get_interpreter();
-        let operation = Operation::new(Box::new(Number::new(10.0)), Box::new(Number::new(20.0)), '+');
-        let instruction = Affectation::new("c", Box::new(operation));
-        interpreter.execute(&instruction);
-        assert_eq!(interpreter.get_variable("c"), Some(&30.0));
+        let affectation = Affectation::new("a", Box::new(StringValue::new("Hello")));
+        interpreter.execute(&affectation);
+        let result = interpreter.get_variable("a");
+        match result {
+            Some(value) => assert!(value.eq(&Value::new_string("Hello"))),
+            None => panic!("Error")
+        }
+    }
+
+    #[test]
+    fn test_operation_number() {
+        let mut interpreter = get_interpreter();
+        let operation = Operation::new(Box::new(FloatValue::new(20.0)), Box::new(FloatValue::new(20.0)), '+');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_float(40.0))),
+            Err(_) => panic!("Error")
+        }
+    }
+
+    #[test]
+    fn test_operation_string() {
+        let mut interpreter = get_interpreter();
+        let operation = Operation::new(Box::new(StringValue::new("Hello")), Box::new(StringValue::new("World")), '+');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_string("HelloWorld"))),
+            Err(_) => panic!("Error")
+        }
     }
 
     #[test]
     fn test_operation_with_variable() {
         let mut interpreter = get_interpreter();
-        let instruction = Affectation::new("a", Box::new(Number::new(10.0)));
-        interpreter.execute(&instruction);
-        let operation = Operation::new(Box::new(Variable::new("a")), Box::new(Number::new(20.0)), '+');
-        let instruction = Affectation::new("c", Box::new(operation));
-        interpreter.execute(&instruction);
-        assert_eq!(interpreter.get_variable("c"), Some(&30.0));
+        let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+        interpreter.execute(&affectation);
+        let operation = Operation::new(Box::new(Variable::new("a")), Box::new(FloatValue::new(20.0)), '+');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_float(40.0))),
+            Err(_) => panic!("Error")
+        }
     }
 
     #[test]
     fn test_multiple_operations() {
         let mut interpreter = get_interpreter();
-        let number1 = Number::new(10.0);
-        let number2 = Number::new(20.0);
-        let number3 = Number::new(36.0);
-        let operation1 = Operation::new(Box::new(number1), Box::new(number2), '+');
-        let operation2 = Operation::new(Box::new(operation1), Box::new(number3), '+');
-        let instruction = Affectation::new("c", Box::new(operation2));
-        interpreter.execute(&instruction);
-        assert_eq!(interpreter.get_variable("c"), Some(&66.0));
-    }
-
-    #[test]
-    fn test_all_operations() {
-        let mut interpreter = get_interpreter();
-
-        let addition = Operation::new(Box::new(Number::new(10.0)), Box::new(Number::new(20.0)), '+');
-        let addition_instruction = Affectation::new("a", Box::new(addition));
-        interpreter.execute(&addition_instruction);
-        assert_eq!(interpreter.get_variable("a"), Some(&30.0));
-
-        let subtraction = Operation::new(Box::new(Number::new(10.0)), Box::new(Number::new(20.0)), '-');
-        let subtraction_instruction = Affectation::new("s", Box::new(subtraction));
-        interpreter.execute(&subtraction_instruction);
-        assert_eq!(interpreter.get_variable("s"), Some(&-10.0));
-
-        let multiplication = Operation::new(Box::new(Number::new(10.0)), Box::new(Number::new(20.0)), '*');
-        let multiplication_instruction = Affectation::new("m", Box::new(multiplication));
-        interpreter.execute(&multiplication_instruction);
-        assert_eq!(interpreter.get_variable("m"), Some(&200.0));
-
-        let division = Operation::new(Box::new(Number::new(10.0)), Box::new(Number::new(20.0)), '/');
-        let division_instruction = Affectation::new("d", Box::new(division));
-        interpreter.execute(&division_instruction);
-        assert_eq!(interpreter.get_variable("d"), Some(&0.5));
-    }
-
-    #[test]
-    fn test_get_value_with_execute(){
-        let mut interpreter = get_interpreter();
-        let number1 = Number::new(10.0);
-        let number2 = Number::new(20.0);
-        let operation = Operation::new(Box::new(number1), Box::new(number2), '+');
-        match interpreter.execute(&operation){
-            Ok(result) => assert_eq!(result.get_value(&interpreter.variables), 30.0),
-            Err(_) => panic!("Error")
-        }
-        let instruction = Affectation::new("a", Box::new(operation));
-        match interpreter.execute(&instruction){
-            Ok(result) => assert_eq!(result.get_value(&interpreter.variables), 0.0),
+        let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+        interpreter.execute(&affectation);
+        let operation = Operation::new(Box::new(Variable::new("a")), Box::new(FloatValue::new(20.0)), '+');
+        let operation = Operation::new(Box::new(operation), Box::new(FloatValue::new(20.0)), '+');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_float(60.0))),
             Err(_) => panic!("Error")
         }
     }
+
+    #[test]
+    fn test_all_operations_number() {
+        let mut interpreter = get_interpreter();
+        let operation = Operation::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '+');
+        let operation = Operation::new(Box::new(operation), Box::new(FloatValue::new(20.0)), '-');
+        let operation = Operation::new(Box::new(operation), Box::new(FloatValue::new(20.0)), '*');
+        let operation = Operation::new(Box::new(operation), Box::new(FloatValue::new(20.0)), '/');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_float(10.0))),
+            Err(_) => panic!("Error")
+        }
+    }
+
+    #[test]
+    fn test_get_number_with_execute(){
+        let mut interpreter = get_interpreter();
+        let operation = Operation::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '+');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_float(30.0))),
+            Err(_) => panic!("Error")
+        }
+    }
+
+    #[test]
+    fn test_get_string_with_execute(){
+        let mut interpreter = get_interpreter();
+        let operation = Operation::new(Box::new(StringValue::new("Hello")), Box::new(StringValue::new("World")), '+');
+        let result = interpreter.execute(&operation);
+        match result {
+            Ok(value) => assert!(value.eq(&Value::new_string("HelloWorld"))),
+            Err(_) => panic!("Error")
+        }
+    }
+
     /*
 
     #[test]
