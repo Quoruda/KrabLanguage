@@ -1,7 +1,10 @@
+use crate::errors::CustomError;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::{Debug, Display};
 
 
-pub(crate) trait Valuable {
+pub trait Valuable {
     fn get_value(&self, variables: &HashMap<String, f64>) -> f64;
 }
 
@@ -34,11 +37,13 @@ impl Valuable for Number {
 
 impl Valuable for Variable {
     fn get_value(&self, variables: &HashMap<String, f64>) -> f64 {
+        let result = variables.get(&self.name);
         match variables.get(&self.name) {
             Some(value) => *value,
             None => panic!("Variable not found"),
         }
     }
+
 }
 
 
@@ -79,18 +84,22 @@ impl Affectation {
 }
 
 pub(crate) trait Instruction {
-    fn execute(&self, variables: &mut HashMap<String, f64>);
+    fn execute(&self, variables: &mut HashMap<String, f64>) -> Result<Box<dyn Valuable>,Box<dyn Error>>;
 }
 
 impl Instruction for Affectation {
-    fn execute(&self, variables: &mut HashMap<String, f64>) {
+    fn execute(&self, variables: &mut HashMap<String, f64>) -> Result<Box<dyn Valuable>,Box<dyn Error>> {
         variables.insert(self.variable.clone(), self.value.get_value(variables));
+
+        //Return None Value
+        Ok(Box::new(Number::new(0.0)))
     }
 }
 
 impl Instruction for Operation {
-    fn execute(&self, variables: &mut HashMap<String, f64>) {
-        self.get_value(variables);
+    fn execute(&self, variables: &mut HashMap<String, f64>) -> Result<Box<dyn Valuable>,Box<dyn Error>> {
+        let value = self.get_value(variables);
+        Ok(Box::new(Number::new(value)))
     }
 }
 
@@ -98,7 +107,7 @@ impl Instruction for Operation {
 pub(crate) struct Interpreter {
     running:bool,
     print_errors:bool,
-    variables:HashMap<String, f64>,
+    pub(crate) variables:HashMap<String, f64>,
 }
 
 impl Interpreter{
@@ -122,8 +131,9 @@ impl Interpreter{
     }
 
 
-    pub(crate) fn execute (&mut self, instruction: &dyn Instruction){
-        instruction.execute(&mut self.variables);
+    pub(crate) fn execute (&mut self, instruction: &dyn Instruction) -> Result<Box<dyn Valuable>,Box<dyn Error>>{
+        let result = instruction.execute(&mut self.variables);
+        return result;
     }
 
 }

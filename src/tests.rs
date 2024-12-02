@@ -77,4 +77,33 @@ mod tests {
         assert_eq!(interpreter.get_variable("d"), Some(&0.5));
     }
 
+    #[test]
+    fn test_get_value_with_execute(){
+        let mut interpreter = get_interpreter();
+        let number1 = Number::new(10.0);
+        let number2 = Number::new(20.0);
+        let operation = Operation::new(Box::new(number1), Box::new(number2), '+');
+        match interpreter.execute(&operation){
+            Ok(result) => assert_eq!(result.get_value(&interpreter.variables), 30.0),
+            Err(_) => panic!("Error")
+        }
+        let instruction = Affectation::new("a", Box::new(operation));
+        match interpreter.execute(&instruction){
+            Ok(result) => assert_eq!(result.get_value(&interpreter.variables), 0.0),
+            Err(_) => panic!("Error")
+        }
+    }
+    /*
+
+    #[test]
+    fn test_error_non_existing_variable(){
+        let mut interpreter = get_interpreter();
+        let operation = Operation::new(Box::new(Variable::new("a")), Box::new(Number::new(20.0)), '+');
+        match interpreter.execute(&operation){
+            Ok(_) => panic!("Error"),
+            Err(_) => assert!(true)
+        }
+    }
+    
+     */
 }
