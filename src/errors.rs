@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 use std::fmt::{Debug, Display};
 
-pub(crate) struct CustomError {
+pub struct CustomError {
     message: String,
     error_type: String,
 }

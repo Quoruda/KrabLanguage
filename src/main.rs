@@ -1,7 +1,10 @@
 mod interpreter;
-mod tests;
 mod errors;
 mod value;
+mod parser;
+mod lexer;
+
+
 
 fn main() {
 
