@@ -12,6 +12,23 @@ impl CustomError {
     pub fn new(message: &str, error_type: &str) -> CustomError {
         CustomError{message: message.to_string(), error_type: error_type.to_string()}
     }
+
+    pub fn new_variable_not_found_error(variable_name: &str) -> CustomError {
+        CustomError::new(&format!("Variable {} does not exist", variable_name), "VariableNotFoundError")
+    }
+
+    pub fn new_operator_not_found_error(operator: char) -> CustomError {
+        CustomError::new(&format!("Operator {} not found", operator), "OperatorNotFoundError")
+    }
+
+    pub fn get_message(&self) -> &str {
+        &self.message
+    }
+
+    pub fn get_error_type(&self) -> &str {
+        &self.error_type
+    }
+
 }
 
 impl Display for CustomError {
