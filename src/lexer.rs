@@ -1,4 +1,5 @@
 use std::vec::Vec;
+use crate::errors::CustomError;
 
 pub struct Token{
     token_type: String,
@@ -67,7 +68,7 @@ impl Lexer{
         }
     }
 
-    pub fn lex(&self, input: &str) -> Vec<Token>{
+    pub fn lex(&self, input: &str) -> Result<Vec<Token>,CustomError>{
         let mut tokens = Vec::new();
         let mut i = 0;
 
@@ -109,6 +110,9 @@ impl Lexer{
                 while j < input.len() && input.chars().nth(j).unwrap() != '"'{
                     j += 1;
                 }
+                if j == input.len() && input.chars().nth(j-1).unwrap() != '"'{
+                    return Err(CustomError::new_lexer_error("String not closed"));
+                }
                 tokens.push(Token::new_string(&input[i+1..j]));
                 i = j + 1;
                 continue;
@@ -126,11 +130,11 @@ impl Lexer{
                 continue;
             }
 
-            i += 1;
+            return Err(CustomError::new_lexer_error(&format!("Unknown character: {}", c)));
         }
 
 
-        return tokens;
+        Ok(tokens)
     }
 
 }

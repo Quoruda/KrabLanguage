@@ -1,4 +1,6 @@
 extern crate KrabLanguage;
+
+use KrabLanguage::errors::CustomError;
 use KrabLanguage::lexer::{Lexer, Token};
 
 fn compare_tokens(tokens: Vec<Token>, expected_tokens: Vec<Token>) -> bool {
@@ -22,17 +24,24 @@ fn affectation_test() {
         Token::new_assign("="),
         Token::new_number("20")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 #[test]
 fn string_test() {
     let lexer = Lexer::new();
-    let tokens = lexer.lex("\"hello world\"");
+    let tokens = lexer.lex("\"hello world\" \"ok\"");
     let expected_tokens = vec![
-        Token::new_string("hello world")
+        Token::new_string("hello world"),
+        Token::new_string("ok")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 #[test]
@@ -44,7 +53,10 @@ fn number_test() {
         Token::new_number("456"),
         Token::new_number("78.9")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 #[test]
@@ -59,7 +71,10 @@ fn operator_test() {
         Token::new_operator("+"),
         Token::new_operator("+")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 #[test]
@@ -71,7 +86,10 @@ fn identifier_test() {
         Token::new_identifier("world158"),
         Token::new_identifier("___r___")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 #[test]
@@ -91,7 +109,10 @@ fn parenthesis_test() {
         Token::new_identifier("d"),
         Token::new_operator(")")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 #[test]
@@ -108,5 +129,36 @@ fn semicolon_test() {
         Token::new_number("30"),
         Token::new_operator(";")
     ];
-    assert!(compare_tokens(tokens, expected_tokens));
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
+fn invalid_character(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("#");
+    match tokens {
+        Ok(_) => assert!(false),
+        Err(err) => assert!(err.equals(&CustomError::new_lexer_error("Unknown character: #")))
+    }
+    let tokens = lexer.lex("\"#\"");
+    let expected_tokens = vec![
+        Token::new_string("#")
+    ];
+    match tokens {
+        Ok(_) => assert!(compare_tokens(tokens.unwrap(), expected_tokens)),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
+fn invalid_string(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("\"hello");
+    match tokens {
+        Ok(_) => assert!(false),
+        Err(err) => assert!(err.equals(&CustomError::new_lexer_error("String not closed")))
+    }
 }
