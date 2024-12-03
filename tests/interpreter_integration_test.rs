@@ -4,7 +4,7 @@ use KrabLanguage::value::Value;
 use KrabLanguage::errors::CustomError;
 
 fn get_interpreter() -> Interpreter {
-    Interpreter::new_for_tests()
+    Interpreter::new()
 }
 
 #[test]

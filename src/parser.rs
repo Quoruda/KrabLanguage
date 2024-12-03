@@ -13,6 +13,9 @@ impl Parser{
     }
 
     pub fn parse(&self, tokens: Vec<Token>) -> Box<dyn Instruction>{
+        for token in tokens{
+            println!("Token: {}", token.get_value());
+        }
         return Box::new(Operation::new(Box::new(FloatValue::new(20.0)), Box::new(FloatValue::new(20.0)), '+'));
     }
 

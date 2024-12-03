@@ -138,16 +138,12 @@ impl Instruction for Operation {
 
 
 pub struct Interpreter {
-    running:bool,
-    print_errors:bool,
-    pub(crate) variables:HashMap<String, Value>,
+    pub variables:HashMap<String, Value>,
 }
 
 impl Interpreter{
     pub fn new() -> Interpreter{
         Interpreter{
-            running:true,
-            print_errors:true,
             variables:HashMap::new(),
         }
     }
@@ -155,14 +151,6 @@ impl Interpreter{
     pub fn get_variable(&self, name: &str) -> Option<&Value> {
         self.variables.get(name)
     }
-    pub fn new_for_tests() -> Interpreter{
-        Interpreter{
-            running:true,
-            print_errors:false,
-            variables:HashMap::new(),
-        }
-    }
-
 
     pub fn execute (&mut self, instruction: &dyn Instruction) -> Result<Value,CustomError>{
         let result = instruction.execute(&mut self.variables);

@@ -6,8 +6,40 @@ pub struct Token{
 }
 
 impl Token{
-    pub fn new(token_type: &str, value: &str) -> Token{
-        Token{token_type: token_type.to_string(), value: value.to_string()}
+
+    pub fn new_identifier(value: &str) -> Token{
+        Token{
+            token_type: "IDENTIFIER".to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    pub fn new_assign(value: &str) -> Token{
+        Token{
+            token_type: "ASSIGN".to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    pub fn new_number(value: &str) -> Token{
+        Token{
+            token_type: "NUMBER".to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    pub fn new_string(value: &str) -> Token{
+        Token{
+            token_type: "STRING".to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    pub fn new_operator(value: &str) -> Token{
+        Token{
+            token_type: "OPERATOR".to_string(),
+            value: value.to_string(),
+        }
     }
 
     pub fn get_token_type(&self) -> &str{
@@ -25,16 +57,77 @@ impl Token{
 }
 
 pub struct Lexer{
-
+    operators: Vec<char>,
 }
 
 impl Lexer{
     pub fn new() -> Lexer{
-        Lexer{}
+        Lexer{
+            operators: vec!['+', '-', '*', '/'],
+        }
     }
 
     pub fn lex(&self, input: &str) -> Vec<Token>{
-        let tokens = Vec::new();
+        let mut tokens = Vec::new();
+        let mut i = 0;
+
+        while i < input.len(){
+            let c = input.chars().nth(i).unwrap();
+            if c.is_whitespace(){
+                i += 1;
+                continue;
+            }
+
+            if c == '(' || c == ')'  || c == ';'{
+                tokens.push(Token::new_operator(&c.to_string()));
+                i += 1;
+                continue;
+            }
+
+            if c.is_alphabetic() || c == '_'{
+                let mut j = i;
+                while j < input.len() && (input.chars().nth(j).unwrap().is_alphabetic() || input.chars().nth(j).unwrap() == '_' || input.chars().nth(j).unwrap().is_numeric()){
+                    j += 1;
+                }
+                tokens.push(Token::new_identifier(&input[i..j]));
+                i = j;
+                continue;
+            }
+
+            if c.is_numeric() {
+                let mut j = i;
+                while j < input.len() && (input.chars().nth(j).unwrap().is_numeric() || input.chars().nth(j).unwrap() == '.'){
+                    j += 1;
+                }
+                tokens.push(Token::new_number(&input[i..j]));
+                i = j;
+                continue;
+            }
+
+            if c == '"'{
+                let mut j = i + 1;
+                while j < input.len() && input.chars().nth(j).unwrap() != '"'{
+                    j += 1;
+                }
+                tokens.push(Token::new_string(&input[i+1..j]));
+                i = j + 1;
+                continue;
+            }
+
+            if self.operators.contains(&c){
+                tokens.push(Token::new_operator(&c.to_string()));
+                i += 1;
+                continue;
+            }
+
+            if c == '='{
+                tokens.push(Token::new_assign("="));
+                i += 1;
+                continue;
+            }
+
+            i += 1;
+        }
 
 
         return tokens;
