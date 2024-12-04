@@ -46,7 +46,7 @@ impl Parser{
                     Err(error) => return Err(error),
                 }
             }else {
-                return Err(CustomError::new_parser_error(&format!("Identifier '{}' is not executable", tokens[0].get_value())));
+                return Ok(Box::new(Variable::new(variable)));
             }
         }else{
             return Err(CustomError::new_parser_error(&format!("Unexpected token: {}", tokens[0].get_value())));

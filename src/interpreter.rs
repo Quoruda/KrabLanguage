@@ -136,6 +136,14 @@ impl Instruction for Operation {
     }
 }
 
+impl Instruction for Variable {
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+        match self.get_value(variables) {
+            Ok(value) => Ok(value),
+            Err(e) => Err(e),
+        }
+    }
+}
 
 pub struct Interpreter {
     pub variables:HashMap<String, Value>,
