@@ -1,9 +1,7 @@
-use crate::interpreter::Instruction;
-use crate::interpreter::Operation;
-use crate::interpreter::FloatValue;
+use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable};
 use crate::lexer::Token;
 
-struct Parser{
+pub struct Parser{
 
 }
 
