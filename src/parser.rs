@@ -12,6 +12,11 @@ impl Parser{
         Parser{}
     }
 
+    fn is_value(token: &Token) -> bool{
+        let token_type = token.get_token_type();
+        token_type == Token::new_identifier("").get_token_type() || token_type == Token::new_number("0.0").get_token_type() || token_type == Token::new_string("").get_token_type()
+    }
+
     fn get_valuable(&self, tokens: Vec<Token>) -> Result<Box<dyn Valuable>, CustomError >{
         if tokens.len() == 0{
             return Err(CustomError::new_parser_error("Value expected but none found"));
@@ -26,6 +31,15 @@ impl Parser{
             }
             return Err(CustomError::new_parser_error(&format!("Unexpected value: {}", tokens[0].get_value())));
         }else{
+            if tokens.len() == 3{
+                if Self::is_value(&tokens[0]) && tokens[1].get_token_type() == Token::new_operator("+").get_token_type() && Self::is_value(&tokens[2]){
+                    let left = self.get_valuable(vec![tokens[0].clone()])?;
+                    let right = self.get_valuable(vec![tokens[2].clone()])?;
+                    let operator:char = tokens[1].get_value().chars().nth(0).unwrap();
+                    println!("{}", operator);
+                    return Ok(Box::new(Operation::new(left, right, operator)));
+                }
+            }
             return Err(CustomError::new_parser_error("Not implemented yet"));
         }
     }

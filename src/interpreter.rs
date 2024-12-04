@@ -119,9 +119,7 @@ impl Instruction for Affectation {
             Ok(v) => value = v,
             Err(e) => return Err(e),
         }
-
         variables.insert(self.variable.clone(), value);
-
         //Return None Value
         Ok(Value::String("None".to_string()))
     }
