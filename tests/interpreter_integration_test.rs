@@ -121,9 +121,8 @@ fn test_non_existing_variable(){
     let mut interpreter = get_interpreter();
     let affectation = Affectation::new("a", Box::new(Variable::new("b")));
     let result = interpreter.execute(&affectation);
-
     match result {
         Ok(_) => assert!(false),
-        Err(e) => assert!(e.get_message() == "Variable b does not exist")
+        Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
     }
 }

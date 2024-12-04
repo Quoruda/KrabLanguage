@@ -162,3 +162,13 @@ fn invalid_string(){
         Err(err) => assert!(err.equals(&CustomError::new_lexer_error("String not closed")))
     }
 }
+
+#[test]
+fn invalid_number(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("123.456.789");
+    match tokens {
+        Ok(_) => assert!(false),
+        Err(err) => assert!(err.equals(&CustomError::new_lexer_error("Invalid number")))
+    }
+}

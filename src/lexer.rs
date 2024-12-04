@@ -100,6 +100,9 @@ impl Lexer{
                 while j < input.len() && (input.chars().nth(j).unwrap().is_numeric() || input.chars().nth(j).unwrap() == '.'){
                     j += 1;
                 }
+                if input[i..j].matches('.').count() > 1{
+                    return Err(CustomError::new_lexer_error("Invalid number"));
+                }
                 tokens.push(Token::new_number(&input[i..j]));
                 i = j;
                 continue;
