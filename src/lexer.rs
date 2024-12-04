@@ -57,6 +57,15 @@ impl Token{
 
 }
 
+impl Clone for Token{
+    fn clone(&self) -> Token{
+        Token{
+            token_type: self.token_type.clone(),
+            value: self.value.clone(),
+        }
+    }
+}
+
 pub struct Lexer{
     operators: Vec<char>,
 }
@@ -71,20 +80,17 @@ impl Lexer{
     pub fn lex(&self, input: &str) -> Result<Vec<Token>,CustomError>{
         let mut tokens = Vec::new();
         let mut i = 0;
-
         while i < input.len(){
             let c = input.chars().nth(i).unwrap();
             if c.is_whitespace(){
                 i += 1;
                 continue;
             }
-
             if c == '(' || c == ')'  || c == ';'{
                 tokens.push(Token::new_operator(&c.to_string()));
                 i += 1;
                 continue;
             }
-
             if c.is_alphabetic() || c == '_'{
                 let mut j = i;
                 while j < input.len() && (input.chars().nth(j).unwrap().is_alphabetic() || input.chars().nth(j).unwrap() == '_' || input.chars().nth(j).unwrap().is_numeric()){
@@ -94,7 +100,6 @@ impl Lexer{
                 i = j;
                 continue;
             }
-
             if c.is_numeric() {
                 let mut j = i;
                 while j < input.len() && (input.chars().nth(j).unwrap().is_numeric() || input.chars().nth(j).unwrap() == '.'){
@@ -107,7 +112,6 @@ impl Lexer{
                 i = j;
                 continue;
             }
-
             if c == '"'{
                 let mut j = i + 1;
                 while j < input.len() && input.chars().nth(j).unwrap() != '"'{
@@ -120,7 +124,6 @@ impl Lexer{
                 i = j + 1;
                 continue;
             }
-
             if self.operators.contains(&c){
                 tokens.push(Token::new_operator(&c.to_string()));
                 i += 1;
@@ -135,10 +138,7 @@ impl Lexer{
 
             return Err(CustomError::new_lexer_error(&format!("Unknown character: {}", c)));
         }
-
-
         Ok(tokens)
     }
-
 }
 

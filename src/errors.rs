@@ -21,9 +21,10 @@ impl CustomError {
         CustomError::new(&format!("Operator {} not found", operator), "OperatorNotFoundError")
     }
 
-    pub fn new_lexer_error(message: &str) -> CustomError {
-        CustomError::new(message, "LexerError")
+    pub fn new_lexer_error(message: &str) -> CustomError {CustomError::new(message, "LexerError")
     }
+
+    pub fn new_parser_error(message: &str) -> CustomError{CustomError::new(message, "ParserError")}
 
     pub fn get_message(&self) -> &str {
         &self.message
