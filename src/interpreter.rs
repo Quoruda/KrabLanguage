@@ -87,12 +87,17 @@ impl Valuable for Operation {
             Ok(value) => right = value,
             Err(e) => return Err(e),
         }
+        let result;
         match self.operator {
-            '+' => Ok(left.add(&right)),
-            '-' => Ok(left.sub(&right)),
-            '*' => Ok(left.mul(&right)),
-            '/' => Ok(left.div(&right)),
-            _ => Err(CustomError::new_operator_not_found_error(self.operator)),
+            '+' => result = left.add(&right),
+            '-' => result = left.sub(&right),
+            '*' => result = left.mul(&right),
+            '/' => result = left.div(&right),
+            _ => return Err(CustomError::new_operator_not_found_error(self.operator)),
+        }
+        match result {
+            Ok(value) => Ok(value),
+            Err(e) => Err(e),
         }
     }
 }

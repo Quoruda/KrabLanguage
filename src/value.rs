@@ -1,9 +1,11 @@
 use std::fmt::Debug;
+use crate::errors::CustomError;
 
 pub enum Value {
     Integer(i64),
     Float(f64),
     String(String),
+    Boolean(bool),
 }
 
 impl Debug for Value {
@@ -12,6 +14,7 @@ impl Debug for Value {
             Value::Integer(i) => write!(f, "Integer({})", i),
             Value::Float(fl) => write!(f, "Float({})", fl),
             Value::String(s) => write!(f, "String({})", s),
+            Value::Boolean(b) => write!(f, "Boolean({})", b),
         }
     }
 }
@@ -30,54 +33,38 @@ impl Value {
         Value::Float(f)
     }
 
-    pub fn add(&self, other: &Value) -> Value {
+    pub fn add(&self, other: &Value) -> Result<Value, CustomError> {
         match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => Value::Integer(a + b),
-            (Value::Float(a), Value::Float(b)) => Value::Float(a + b),
-            (Value::String(a), Value::String(b)) => Value::String(format!("{}{}", a, b)),
-            _ => panic!("Cannot add {:?} and {:?}", self, other),
+            (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a + b)),
+            (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
+            (Value::String(a), Value::String(b)) => Ok(Value::String(format!("{}{}", a, b))),
+            (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(*a || *b)),
+            _ => Err(CustomError::new_operation_error(format!("Cannot add {:?} and {:?}", self, other).as_str())),
         }
     }
 
-    pub fn sub(&self, other: &Value) -> Value {
+    pub fn sub(&self, other: &Value) -> Result<Value, CustomError> {
         match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => Value::Integer(a - b),
-            (Value::Float(a), Value::Float(b)) => Value::Float(a - b),
-            _ => panic!("Cannot subtract {:?} and {:?}", self, other),
+            (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a - b)),
+            (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a - b)),
+            _ => Err(CustomError::new_operation_error(format!("Cannot subtract {:?} and {:?}", self, other).as_str())),
         }
     }
 
-    pub fn mul(&self, other: &Value) -> Value {
+    pub fn mul(&self, other: &Value) -> Result<Value, CustomError> {
         match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => Value::Integer(a * b),
-            (Value::Float(a), Value::Float(b)) => Value::Float(a * b),
-            _ => panic!("Cannot multiply {:?} and {:?}", self, other),
+            (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a * b)),
+            (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a * b)),
+            (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(*a && *b)),
+            _ => Err(CustomError::new_operation_error(format!("Cannot multiply {:?} and {:?}", self, other).as_str())),
         }
     }
 
-    pub fn div(&self, other: &Value) -> Value {
+    pub fn div(&self, other: &Value) -> Result<Value, CustomError> {
         match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => Value::Integer(a / b),
-            (Value::Float(a), Value::Float(b)) => Value::Float(a / b),
-            _ => panic!("Cannot divide {:?} and {:?}", self, other),
-        }
-    }
-
-    pub fn eq(&self, other: &Value) -> bool {
-        match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => a == b,
-            (Value::Float(a), Value::Float(b)) => a == b,
-            (Value::String(a), Value::String(b)) => a == b,
-            _ => false,
-        }
-    }
-
-    pub fn neq(&self, other: &Value) -> bool {
-        match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => a != b,
-            (Value::Float(a), Value::Float(b)) => a != b,
-            (Value::String(a), Value::String(b)) => a != b,
-            _ => false,
+            (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a / b)),
+            (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a / b)),
+            _ => Err(CustomError::new_operation_error(format!("Cannot divide {:?} and {:?}", self, other).as_str())),
         }
     }
 
@@ -86,6 +73,7 @@ impl Value {
             Value::Integer(i) => Value::Integer(*i),
             Value::Float(f) => Value::Float(*f),
             Value::String(s) => Value::String(s.clone()),
+            Value::Boolean(b) => Value::Boolean(*b),
         }
     }
 
@@ -94,6 +82,7 @@ impl Value {
             Value::Integer(i) => i.to_string(),
             Value::Float(f) => f.to_string(),
             Value::String(s) => s.clone(),
+            Value::Boolean(b) => b.to_string(),
         }
     }
 
