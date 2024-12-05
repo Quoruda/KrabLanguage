@@ -1,4 +1,3 @@
-use std::fmt::format;
 use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable};
 use crate::lexer::Token;
 use crate::errors::CustomError;

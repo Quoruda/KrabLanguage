@@ -1,5 +1,5 @@
 extern crate KrabLanguage;
-use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition};
+use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition, ConditionBlock};
 use KrabLanguage::value::Value;
 use KrabLanguage::errors::CustomError;
 
@@ -173,3 +173,25 @@ fn test_error_condition(){
     }
 }
 
+#[test]
+fn test_condition_block(){
+    let mut interpreter = get_interpreter();
+    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '>');
+    let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
+    let _result = interpreter.execute(&condition_block);
+    let var = interpreter.get_variable("a");
+    match var {
+        Some(_) => assert!(false),
+        None => assert!(true)
+    }
+    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '<');
+    let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
+    let _result = interpreter.execute(&condition_block);
+    let var = interpreter.get_variable("a");
+    match var {
+        Some(value) => assert!(eq_values(value, &Value::new_float(20.0))),
+        None => assert!(false)
+    }
+}

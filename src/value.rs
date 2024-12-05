@@ -6,6 +6,7 @@ pub enum Value {
     Float(f64),
     String(String),
     Boolean(bool),
+    Null(),
 }
 
 impl Debug for Value {
@@ -15,6 +16,7 @@ impl Debug for Value {
             Value::Float(fl) => write!(f, "Float({})", fl),
             Value::String(s) => write!(f, "String({})", s),
             Value::Boolean(b) => write!(f, "Boolean({})", b),
+            Value::Null() => write!(f, "Null"),
         }
     }
 }
@@ -35,6 +37,10 @@ impl Value {
 
     pub fn new_boolean(b: bool) -> Value {
         Value::Boolean(b)
+    }
+
+    pub fn new_null() -> Value {
+        Value::Null()
     }
 
     pub fn add(&self, other: &Value) -> Result<Value, CustomError> {
@@ -115,6 +121,7 @@ impl Value {
             Value::Float(f) => Value::Float(*f),
             Value::String(s) => Value::String(s.clone()),
             Value::Boolean(b) => Value::Boolean(*b),
+            Value::Null() => Value::Null(),
         }
     }
 
@@ -124,6 +131,7 @@ impl Value {
             Value::Float(f) => f.to_string(),
             Value::String(s) => s.clone(),
             Value::Boolean(b) => b.to_string(),
+            Value::Null() => "None".to_string(),
         }
     }
 

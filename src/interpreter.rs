@@ -141,8 +141,7 @@ impl Instruction for Affectation {
             Err(e) => return Err(e),
         }
         variables.insert(self.variable.clone(), value);
-        //Return None Value
-        Ok(Value::String("None".to_string()))
+        Ok(Value::Null())
     }
 }
 
@@ -218,6 +217,42 @@ impl Instruction for Condition {
 
 pub struct Interpreter {
     pub variables:HashMap<String, Value>,
+}
+
+pub struct ConditionBlock {
+    conditions: Condition,
+    instructions: Vec<Box<dyn Instruction>>,
+}
+
+impl ConditionBlock {
+    pub fn new(conditions: Condition, instructions: Vec<Box<dyn Instruction>>) -> ConditionBlock {
+        ConditionBlock{conditions, instructions}
+    }
+}
+
+impl Instruction for ConditionBlock {
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value, CustomError> {
+        let condition;
+        match self.conditions.get_value(variables) {
+            Ok(value) => {
+                match value {
+                    Value ::Boolean(b) => condition = b,
+                    Value::Null() => condition = false,
+                    _ => condition = false,
+                }
+            },
+            Err(e) => return Err(e),
+        }
+        if condition {
+            for instruction in &self.instructions {
+                match instruction.execute(variables) {
+                    Ok(_) => (),
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        return Ok(Value::Null())
+    }
 }
 
 impl Interpreter{
