@@ -164,6 +164,58 @@ impl Instruction for Variable {
     }
 }
 
+pub struct Condition{
+    left: Box<dyn Valuable>,
+    right: Box<dyn Valuable>,
+    operator: char,
+}
+
+impl Condition {
+    pub fn new(left: Box<dyn Valuable>, right: Box<dyn Valuable>, operator: char) -> Condition {
+        Condition{left, right, operator}
+    }
+
+    pub fn is_true(&self, variables: &HashMap<String, Value>) -> Result<bool, CustomError> {
+        let left; let right;
+        match self.left.get_value(variables) {
+            Ok(value) => left = value,
+            Err(e) => return Err(e),
+        }
+        match self.right.get_value(variables) {
+            Ok(value) => right = value,
+            Err(e) => return Err(e),
+        }
+        let result;
+        match self.operator {
+            '>' => result = left.gt(&right),
+            '<' => result = left.lt(&right),
+            _ => return Err(CustomError::new_operator_not_found_error(self.operator)),
+        }
+        match result {
+            Ok(value) => Ok(value),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl Valuable for Condition{
+    fn get_value(&self, variables: &HashMap<String, Value>) -> Result<Value, CustomError>  {
+        match self.is_true(variables) {
+            Ok(value) => Ok(Value::new_boolean(value)),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl Instruction for Condition {
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+        match self.get_value(variables) {
+            Ok(value) => Ok(value),
+            Err(e) => Err(e),
+        }
+    }
+}
+
 pub struct Interpreter {
     pub variables:HashMap<String, Value>,
 }

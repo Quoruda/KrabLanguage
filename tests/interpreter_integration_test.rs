@@ -1,11 +1,17 @@
 extern crate KrabLanguage;
-use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue};
+use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition};
 use KrabLanguage::value::Value;
 use KrabLanguage::errors::CustomError;
-use KrabLanguage::value::Value::Integer;
 
 fn get_interpreter() -> Interpreter {
     Interpreter::new()
+}
+
+fn eq_values(value1: &Value, value2: &Value) -> bool {
+    match value1.eq(value2) {
+        Ok(b) => b,
+        Err(_) => false
+    }
 }
 
 #[test]
@@ -15,7 +21,7 @@ fn test_affectation_number() {
     let _ = interpreter.execute(&affectation);
     let result = interpreter.get_variable("a");
     match result {
-        Some(value) => assert!(value.eq(&Value::new_float(20.0))),
+        Some(value) => assert!(eq_values(value, &Value::new_float(20.0))),
         None => assert!(false)
     }
 }
@@ -27,7 +33,7 @@ fn test_affectation_string() {
     let _ = interpreter.execute(&affectation);
     let result = interpreter.get_variable("a");
     match result {
-        Some(value) => assert!(value.eq(&Value::new_string("Hello"))),
+        Some(value) => assert!(eq_values(value,&Value::new_string("Hello"))),
         None =>  assert!(false)
     }
 }
@@ -38,7 +44,7 @@ fn test_operation_number() {
     let operation = Operation::new(Box::new(FloatValue::new(20.0)), Box::new(FloatValue::new(20.0)), '+');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_float(40.0))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(40.0))),
         Err(_) => assert!(false)
     }
 }
@@ -49,7 +55,7 @@ fn test_operation_string() {
     let operation = Operation::new(Box::new(StringValue::new("Hello")), Box::new(StringValue::new("World")), '+');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_string("HelloWorld"))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_string("HelloWorld"))),
         Err(_) => assert!(false)
     }
 }
@@ -62,7 +68,7 @@ fn test_operation_with_variable() {
     let operation = Operation::new(Box::new(Variable::new("a")), Box::new(FloatValue::new(20.0)), '+');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_float(40.0))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(40.0))),
         Err(_) => assert!(false)
     }
 }
@@ -73,7 +79,7 @@ fn test_multiplication_between_string_and_integer() {
     let operation = Operation::new(Box::new(StringValue::new("Hello")), Box::new(IntegerValue::new(2)), '*');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_string("HelloHello"))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_string("HelloHello"))),
         Err(_) => assert!(false)
     }
 }
@@ -87,7 +93,7 @@ fn test_multiple_operations() {
     let operation = Operation::new(Box::new(operation), Box::new(FloatValue::new(20.0)), '+');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_float(60.0))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(60.0))),
         Err(_) => assert!(false)
     }
 }
@@ -101,7 +107,7 @@ fn test_all_operations_number() {
     let operation = Operation::new(Box::new(operation), Box::new(FloatValue::new(20.0)), '/');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_float(10.0))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(10.0))),
         Err(_) => assert!(false)
     }
 }
@@ -112,7 +118,7 @@ fn test_get_number_with_execute(){
     let operation = Operation::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '+');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_float(30.0))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(30.0))),
         Err(_) => assert!(false)
     }
 }
@@ -123,7 +129,7 @@ fn test_get_string_with_execute(){
     let operation = Operation::new(Box::new(StringValue::new("Hello")), Box::new(StringValue::new("World")), '+');
     let result = interpreter.execute(&operation);
     match result {
-        Ok(value) => assert!(value.eq(&Value::new_string("HelloWorld"))),
+        Ok(value) => assert!(eq_values(&value, &Value::new_string("HelloWorld"))),
         Err(_) => assert!(false)
     }
 }
@@ -136,6 +142,34 @@ fn test_non_existing_variable(){
     match result {
         Ok(_) => assert!(false),
         Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
+    }
+}
+
+#[test]
+fn test_conditions(){
+    let mut interpreter = get_interpreter();
+    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '>');
+    let result = interpreter.execute(&condition);
+    match result {
+        Ok(value) => assert!(eq_values(&value, &Value::new_boolean(false))),
+        Err(_) => assert!(false)
+    }
+    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '<');
+    let result = interpreter.execute(&condition);
+    match result {
+        Ok(value) => assert!(eq_values(&value, &Value::new_boolean(true))),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
+fn test_error_condition(){
+    let mut interpreter = get_interpreter();
+    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), 'a');
+    let result = interpreter.execute(&condition);
+    match result {
+        Ok(_) => assert!(false),
+        Err(e) => assert!(e.equals(&CustomError::new_operator_not_found_error('a')))
     }
 }
 

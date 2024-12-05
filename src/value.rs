@@ -33,6 +33,10 @@ impl Value {
         Value::Float(f)
     }
 
+    pub fn new_boolean(b: bool) -> Value {
+        Value::Boolean(b)
+    }
+
     pub fn add(&self, other: &Value) -> Result<Value, CustomError> {
         match (self, other) {
             (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a + b)),
@@ -69,13 +73,38 @@ impl Value {
         }
     }
 
-    pub fn eq(&self, other: &Value) -> bool {
+    pub fn eq(&self, other: &Value) -> Result<bool, CustomError> {
+        let result ;
         match (self, other) {
-            (Value::Integer(a), Value::Integer(b)) => a == b,
-            (Value::Float(a), Value::Float(b)) => a == b,
-            (Value::String(a), Value::String(b)) => a == b,
-            (Value::Boolean(a), Value::Boolean(b)) => a == b,
-            _ => false,
+            (Value::Integer(a), Value::Integer(b)) => result = a == b,
+            (Value::Float(a), Value::Float(b)) => result = a == b,
+            (Value::String(a), Value::String(b)) => result = a == b,
+            (Value::Boolean(a), Value::Boolean(b)) => result = a == b,
+            _ => result = false,
+        }
+        Ok(result)
+    }
+
+    pub fn neq(&self, other: &Value) -> Result<bool, CustomError> {
+        match self.eq(other) {
+            Ok(eq) => Ok(!eq),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn gt(&self, other: &Value) -> Result<bool, CustomError> {
+        match (self, other) {
+            (Value::Integer(a), Value::Integer(b)) => Ok(a > b),
+            (Value::Float(a), Value::Float(b)) => Ok(a > b),
+            _ => Err(CustomError::new_operation_error(format!("Cannot compare {:?} and {:?}", self, other).as_str())),
+        }
+    }
+
+    pub fn lt(&self, other: &Value) -> Result<bool, CustomError> {
+        match (self, other) {
+            (Value::Integer(a), Value::Integer(b)) => Ok(a < b),
+            (Value::Float(a), Value::Float(b)) => Ok(a < b),
+            _ => Err(CustomError::new_operation_error(format!("Cannot compare {:?} and {:?}", self, other).as_str())),
         }
     }
 
