@@ -1,7 +1,8 @@
 extern crate KrabLanguage;
-use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation};
+use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue};
 use KrabLanguage::value::Value;
 use KrabLanguage::errors::CustomError;
+use KrabLanguage::value::Value::Integer;
 
 fn get_interpreter() -> Interpreter {
     Interpreter::new()
@@ -67,6 +68,17 @@ fn test_operation_with_variable() {
 }
 
 #[test]
+fn test_multiplication_between_string_and_integer() {
+    let mut interpreter = get_interpreter();
+    let operation = Operation::new(Box::new(StringValue::new("Hello")), Box::new(IntegerValue::new(2)), '*');
+    let result = interpreter.execute(&operation);
+    match result {
+        Ok(value) => assert!(value.eq(&Value::new_string("HelloHello"))),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
 fn test_multiple_operations() {
     let mut interpreter = get_interpreter();
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
@@ -126,3 +138,4 @@ fn test_non_existing_variable(){
         Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
     }
 }
+

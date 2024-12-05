@@ -25,7 +25,11 @@ impl Parser{
             if token_type == Token::new_identifier("").get_token_type(){
                 return Ok(Box::new(Variable::new(tokens[0].get_value())));
             }else if token_type == Token::new_number("0.0").get_token_type(){
-                return Ok(Box::new(FloatValue::new(tokens[0].get_value().parse::<f64>().unwrap())));
+                if tokens[0].get_value().contains("."){
+                    return Ok(Box::new(FloatValue::new(tokens[0].get_value().parse::<f64>().unwrap())));
+                }else{
+                    return Ok(Box::new(FloatValue::new(tokens[0].get_value().parse::<i64>().unwrap() as f64)));
+                }
             }else if token_type == Token::new_string("").get_token_type(){
                 return Ok(Box::new(StringValue::new(tokens[0].get_value())));
             }

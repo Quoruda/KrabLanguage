@@ -12,9 +12,19 @@ pub struct FloatValue {
     value: f64,
 }
 
+pub struct IntegerValue {
+    value: i64,
+}
+
 impl FloatValue {
     pub fn new(value: f64) -> FloatValue {
         FloatValue {value}
+    }
+}
+
+impl IntegerValue {
+    pub fn new(value: i64) -> IntegerValue {
+        IntegerValue {value}
     }
 }
 
@@ -42,6 +52,12 @@ impl Variable {
 impl Valuable for FloatValue {
     fn get_value(&self, _variables: &HashMap<String, Value>) -> Result<Value, CustomError> {
         Ok(Value::new_float(self.value))
+    }
+}
+
+impl Valuable for IntegerValue {
+    fn get_value(&self, _variables: &HashMap<String, Value>) -> Result<Value, CustomError> {
+        Ok(Value::new_integer(self.value))
     }
 }
 

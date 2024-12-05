@@ -56,6 +56,7 @@ impl Value {
             (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a * b)),
             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a * b)),
             (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(*a && *b)),
+            (Value::String(a), Value::Integer(b)) => Ok(Value::String(a.repeat(*b as usize))),
             _ => Err(CustomError::new_operation_error(format!("Cannot multiply {:?} and {:?}", self, other).as_str())),
         }
     }
@@ -67,6 +68,17 @@ impl Value {
             _ => Err(CustomError::new_operation_error(format!("Cannot divide {:?} and {:?}", self, other).as_str())),
         }
     }
+
+    pub fn eq(&self, other: &Value) -> bool {
+        match (self, other) {
+            (Value::Integer(a), Value::Integer(b)) => a == b,
+            (Value::Float(a), Value::Float(b)) => a == b,
+            (Value::String(a), Value::String(b)) => a == b,
+            (Value::Boolean(a), Value::Boolean(b)) => a == b,
+            _ => false,
+        }
+    }
+
 
     pub fn clone(&self) -> Value {
         match self {
