@@ -174,7 +174,21 @@ fn test_error_condition(){
 }
 
 #[test]
-fn test_condition_block(){
+fn test_condition_block_success(){
+    let mut interpreter = get_interpreter();
+    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '<');
+    let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
+    let _result = interpreter.execute(&condition_block);
+    let var = interpreter.get_variable("a");
+    match var {
+        Some(value) => assert!(eq_values(value, &Value::new_float(20.0))),
+        None => assert!(false)
+    }
+}
+
+#[test]
+fn test_condition_block_fail() {
     let mut interpreter = get_interpreter();
     let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '>');
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
@@ -184,14 +198,5 @@ fn test_condition_block(){
     match var {
         Some(_) => assert!(false),
         None => assert!(true)
-    }
-    let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '<');
-    let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
-    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
-    let _result = interpreter.execute(&condition_block);
-    let var = interpreter.get_variable("a");
-    match var {
-        Some(value) => assert!(eq_values(value, &Value::new_float(20.0))),
-        None => assert!(false)
     }
 }
