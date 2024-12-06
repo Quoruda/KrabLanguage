@@ -1,12 +1,16 @@
-use std::io;
-use std::ops::Deref;
-use errors::CustomError;
-
 mod interpreter;
 mod errors;
 mod value;
 mod parser;
 mod lexer;
+
+mod variables;
+
+use std::io;
+use std::ops::Deref;
+use crate::errors::CustomError;
+
+
 
 fn next_line() -> String {
     let mut input = String::new();

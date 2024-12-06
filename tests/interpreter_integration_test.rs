@@ -21,8 +21,8 @@ fn test_affectation_number() {
     let _ = interpreter.execute(&affectation);
     let result = interpreter.get_variable("a");
     match result {
-        Some(value) => assert!(eq_values(value, &Value::new_float(20.0))),
-        None => assert!(false)
+        Ok(value) => assert!(eq_values(&value,&Value::new_float(20.0))),
+        Err(_) =>  assert!(false)
     }
 }
 
@@ -33,8 +33,8 @@ fn test_affectation_string() {
     let _ = interpreter.execute(&affectation);
     let result = interpreter.get_variable("a");
     match result {
-        Some(value) => assert!(eq_values(value,&Value::new_string("Hello"))),
-        None =>  assert!(false)
+        Ok(value) => assert!(eq_values(&value,&Value::new_string("Hello"))),
+        Err(_) =>  assert!(false)
     }
 }
 
@@ -182,8 +182,8 @@ fn test_condition_block_success(){
     let _result = interpreter.execute(&condition_block);
     let var = interpreter.get_variable("a");
     match var {
-        Some(value) => assert!(eq_values(value, &Value::new_float(20.0))),
-        None => assert!(false)
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(20.0))),
+        Err(_) => assert!(false)
     }
 }
 
@@ -196,7 +196,7 @@ fn test_condition_block_fail() {
     let _result = interpreter.execute(&condition_block);
     let var = interpreter.get_variable("a");
     match var {
-        Some(_) => assert!(false),
-        None => assert!(true)
+        Ok(_) => assert!(false),
+        Err(_) => assert!(true)
     }
 }

@@ -2,10 +2,11 @@
 use crate::errors::CustomError;
 use std::collections::HashMap;
 use crate::value::Value;
+use crate::variables::VariableManager;
 
 
 pub trait Valuable {
-    fn get_value(&self, variables: &HashMap<String, Value>) -> Result<Value, CustomError>;
+    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>;
 }
 
 pub struct FloatValue {
@@ -50,29 +51,29 @@ impl Variable {
 
 
 impl Valuable for FloatValue {
-    fn get_value(&self, _variables: &HashMap<String, Value>) -> Result<Value, CustomError> {
+    fn get_value(&self, _variables: &VariableManager) -> Result<Value, CustomError> {
         Ok(Value::new_float(self.value))
     }
 }
 
 impl Valuable for IntegerValue {
-    fn get_value(&self, _variables: &HashMap<String, Value>) -> Result<Value, CustomError> {
+    fn get_value(&self, _variables: &VariableManager) -> Result<Value, CustomError> {
         Ok(Value::new_integer(self.value))
     }
 }
 
 impl Valuable for StringValue {
-    fn get_value(&self, _variables: &HashMap<String, Value>) -> Result<Value, CustomError> {
+    fn get_value(&self, _variables: &VariableManager) -> Result<Value, CustomError> {
         Ok(Value::new_string(&self.value))
     }
 }
 
 
 impl Valuable for Variable {
-    fn get_value(&self, variables: &HashMap<String, Value>) -> Result<Value, CustomError>  {
-        match variables.get(&self.name) {
-            Some(value) => Ok(value.clone()),
-            None => Err(CustomError::new_variable_not_found_error(&self.name)),
+    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>  {
+        match variables.get_variable(&self.name) {
+            Ok(value) => Ok(value),
+            Err(e) => Err(e),
         }
     }
 
@@ -93,7 +94,7 @@ impl Operation {
 }
 
 impl Valuable for Operation {
-    fn get_value(&self, variables: &HashMap<String, Value>) -> Result<Value, CustomError>  {
+    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>  {
         let left; let right;
         match self.left.get_value(variables) {
             Ok(value) => left = value,
@@ -130,23 +131,23 @@ impl Affectation {
 }
 
 pub trait Instruction {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError>;
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value,CustomError>;
 }
 
 impl Instruction for Affectation {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value,CustomError> {
         let value;
         match self.value.get_value(variables) {
             Ok(v) => value = v,
             Err(e) => return Err(e),
         }
-        variables.insert(self.variable.clone(), value);
+        variables.set_variable(&self.variable, value);
         Ok(Value::Null())
     }
 }
 
 impl Instruction for Operation {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value,CustomError> {
         match self.get_value(variables) {
             Ok(value) => Ok(value),
             Err(e) => Err(e),
@@ -155,7 +156,7 @@ impl Instruction for Operation {
 }
 
 impl Instruction for Variable {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value,CustomError> {
         match self.get_value(variables) {
             Ok(value) => Ok(value),
             Err(e) => Err(e),
@@ -170,7 +171,7 @@ pub struct Condition{
 }
 
 impl Instruction for Box<dyn Valuable> {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value,CustomError> {
         match self.get_value(variables) {
             Ok(value) => Ok(value),
             Err(e) => Err(e),
@@ -183,7 +184,7 @@ impl Condition {
         Condition{left, right, operator}
     }
 
-    pub fn is_true(&self, variables: &HashMap<String, Value>) -> Result<bool, CustomError> {
+    pub fn is_true(&self, variables: &VariableManager) -> Result<bool, CustomError> {
         let left; let right;
         match self.left.get_value(variables) {
             Ok(value) => left = value,
@@ -207,7 +208,7 @@ impl Condition {
 }
 
 impl Valuable for Condition{
-    fn get_value(&self, variables: &HashMap<String, Value>) -> Result<Value, CustomError>  {
+    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>  {
         match self.is_true(variables) {
             Ok(value) => Ok(Value::new_boolean(value)),
             Err(e) => Err(e),
@@ -216,7 +217,7 @@ impl Valuable for Condition{
 }
 
 impl Instruction for Condition {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value,CustomError> {
         match self.get_value(variables) {
             Ok(value) => Ok(value),
             Err(e) => Err(e),
@@ -225,7 +226,7 @@ impl Instruction for Condition {
 }
 
 pub struct Interpreter {
-    pub variables:HashMap<String, Value>,
+    pub variables:VariableManager,
 }
 
 pub struct ConditionBlock {
@@ -240,7 +241,7 @@ impl ConditionBlock {
 }
 
 impl Instruction for ConditionBlock {
-    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value, CustomError> {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value, CustomError> {
         let condition;
         match self.conditions.get_value(variables) {
             Ok(value) => {
@@ -267,12 +268,12 @@ impl Instruction for ConditionBlock {
 impl Interpreter{
     pub fn new() -> Interpreter{
         Interpreter{
-            variables:HashMap::new(),
+            variables:VariableManager::new(),
         }
     }
 
-    pub fn get_variable(&self, name: &str) -> Option<&Value> {
-        self.variables.get(name)
+    pub fn get_variable(&self, name: &str) -> Result<Value, CustomError> {
+        self.variables.get_variable(name)
     }
 
     pub fn execute (&mut self, instruction: &dyn Instruction) -> Result<Value,CustomError>{

@@ -12,6 +12,4 @@ fn affectation_test() {
     ];
     let parser = Parser::new();
     let instruction = parser.parse(tokens);
-
-
 }
