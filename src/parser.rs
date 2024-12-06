@@ -1,4 +1,4 @@
-use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable};
+use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable, IntegerValue};
 use crate::lexer::Token;
 use crate::errors::CustomError;
 
@@ -27,7 +27,7 @@ impl Parser{
                 if tokens[0].get_value().contains("."){
                     return Ok(Box::new(FloatValue::new(tokens[0].get_value().parse::<f64>().unwrap())));
                 }else{
-                    return Ok(Box::new(FloatValue::new(tokens[0].get_value().parse::<i64>().unwrap() as f64)));
+                    return Ok(Box::new(IntegerValue::new(tokens[0].get_value().parse::<i64>().unwrap())));
                 }
             }else if token_type == Token::new_string("").get_token_type(){
                 return Ok(Box::new(StringValue::new(tokens[0].get_value())));
@@ -39,7 +39,6 @@ impl Parser{
                     let left = self.get_valuable(vec![tokens[0].clone()])?;
                     let right = self.get_valuable(vec![tokens[2].clone()])?;
                     let operator:char = tokens[1].get_value().chars().nth(0).unwrap();
-                    println!("{}", operator);
                     return Ok(Box::new(Operation::new(left, right, operator)));
                 }
             }
@@ -59,15 +58,21 @@ impl Parser{
                 }
                 let result = self.get_valuable(tokens[2..].to_vec());
                 match result{
-                    Ok(value) => Ok(Box::new( Affectation::new(&variable.to_string(), value))),
+                    Ok(value) => return Ok(Box::new( Affectation::new(&variable.to_string(), value))),
                     Err(error) => return Err(error),
                 }
             }else {
                 return Ok(Box::new(Variable::new(variable)));
             }
-        }else{
-            return Err(CustomError::new_parser_error(&format!("Unexpected token: {}", tokens[0].get_value())));
         }
+        match self.get_valuable(tokens.clone()){
+            Ok(v) => {
+                let instruction: Box<dyn Instruction> = Box::new(v);
+                return Ok(instruction);
+            }
+            Err(_) => {}
+        }
+        return Err(CustomError::new_parser_error(&format!("Unexpected token: {}", tokens[0].get_value())));
     }
 
 }

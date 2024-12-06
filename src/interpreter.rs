@@ -169,6 +169,15 @@ pub struct Condition{
     operator: char,
 }
 
+impl Instruction for Box<dyn Valuable> {
+    fn execute(&self, variables: &mut HashMap<String, Value>) -> Result<Value,CustomError> {
+        match self.get_value(variables) {
+            Ok(value) => Ok(value),
+            Err(e) => Err(e),
+        }
+    }
+}
+
 impl Condition {
     pub fn new(left: Box<dyn Valuable>, right: Box<dyn Valuable>, operator: char) -> Condition {
         Condition{left, right, operator}
