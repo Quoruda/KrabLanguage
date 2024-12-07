@@ -254,12 +254,17 @@ impl Instruction for ConditionBlock {
             Err(e) => return Err(e),
         }
         if condition {
+            variables.enter_scope();
             for instruction in &self.instructions {
                 match instruction.execute(variables) {
                     Ok(_) => (),
-                    Err(e) => return Err(e),
+                    Err(e) => {
+                        variables.exit_scope();
+                        return Err(e)
+                    },
                 }
             }
+            variables.exit_scope();
         }
         return Ok(Value::Null())
     }
