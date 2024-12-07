@@ -18,7 +18,7 @@ fn test_speed_condition_loop_p1(){
     instructions.push(Box::new(condition_loop));
 
     let now = Instant::now();
-    let _ interpreter.execute_instructions(&instructions);
+    let _ = interpreter.execute_instructions(&instructions);
     let elapsed = now.elapsed();
     println!("With condition loop : {:?}", elapsed.as_secs_f64());
 }
