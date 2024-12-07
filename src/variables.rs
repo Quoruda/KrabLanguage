@@ -7,6 +7,8 @@ pub struct VariableManager {
     scope:usize,
 }
 
+
+
 impl VariableManager {
     pub fn new() -> VariableManager {
         VariableManager {variables: vec![HashMap::new()]

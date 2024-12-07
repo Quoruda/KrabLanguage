@@ -1,1 +1,0 @@
-Remplacer (StringValue, IntegerValue, FloatValue) par Value

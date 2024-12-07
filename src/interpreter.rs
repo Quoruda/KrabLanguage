@@ -1,11 +1,11 @@
-
+use std::ops::Deref;
 use crate::errors::CustomError;
 use crate::value::Value;
 use crate::variables::VariableManager;
 
 
 pub trait Valuable {
-    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>;
+    fn get_value(&self, variables: &mut VariableManager) -> Result<Value, CustomError>;
 }
 
 pub struct FloatValue {
@@ -50,26 +50,26 @@ impl Variable {
 
 
 impl Valuable for FloatValue {
-    fn get_value(&self, _variables: &VariableManager) -> Result<Value, CustomError> {
+    fn get_value(&self, _variables: &mut VariableManager) -> Result<Value, CustomError> {
         Ok(Value::new_float(self.value))
     }
 }
 
 impl Valuable for IntegerValue {
-    fn get_value(&self, _variables: &VariableManager) -> Result<Value, CustomError> {
+    fn get_value(&self, _variables: &mut VariableManager) -> Result<Value, CustomError> {
         Ok(Value::new_integer(self.value))
     }
 }
 
 impl Valuable for StringValue {
-    fn get_value(&self, _variables: &VariableManager) -> Result<Value, CustomError> {
+    fn get_value(&self, _variables: &mut VariableManager) -> Result<Value, CustomError> {
         Ok(Value::new_string(&self.value))
     }
 }
 
 
 impl Valuable for Variable {
-    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>  {
+    fn get_value(&self, variables: &mut VariableManager) -> Result<Value, CustomError>  {
         match variables.get_variable(&self.name) {
             Ok(value) => Ok(value),
             Err(e) => Err(e),
@@ -93,7 +93,7 @@ impl Operation {
 }
 
 impl Valuable for Operation {
-    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>  {
+    fn get_value(&self, variables: &mut VariableManager) -> Result<Value, CustomError>  {
         let left; let right;
         match self.left.get_value(variables) {
             Ok(value) => left = value,
@@ -183,7 +183,7 @@ impl Condition {
         Condition{left, right, operator}
     }
 
-    pub fn is_true(&self, variables: &VariableManager) -> Result<bool, CustomError> {
+    pub fn is_true(&self, variables: &mut VariableManager) -> Result<bool, CustomError> {
         let left; let right;
         match self.left.get_value(variables) {
             Ok(value) => left = value,
@@ -207,7 +207,7 @@ impl Condition {
 }
 
 impl Valuable for Condition{
-    fn get_value(&self, variables: &VariableManager) -> Result<Value, CustomError>  {
+    fn get_value(&self, variables: &mut VariableManager) -> Result<Value, CustomError>  {
         match self.is_true(variables) {
             Ok(value) => Ok(Value::new_boolean(value)),
             Err(e) => Err(e),
@@ -325,13 +325,23 @@ impl Interpreter{
         }
     }
 
-    pub fn get_variable(&self, name: &str) -> Result<Value, CustomError> {
+    pub fn get_variable(&mut self, name: &str) -> Result<Value, CustomError> {
         self.variables.get_variable(name)
     }
 
     pub fn execute (&mut self, instruction: &dyn Instruction) -> Result<Value,CustomError>{
         let result = instruction.execute(&mut self.variables);
         return result;
+    }
+
+    pub fn execute_instructions(&mut self, instructions: &Vec<Box<dyn Instruction>>) -> Result<Value,CustomError>{
+        for instruction in instructions {
+            match self.execute(instruction.deref()) {
+                Ok(_) => (),
+                Err(e) => return Err(e),
+            }
+        }
+        return Ok(Value::new_null())
     }
 
 }
