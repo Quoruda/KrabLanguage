@@ -14,7 +14,7 @@ impl VariableManager {
     }
 
     pub fn get_variable(&self, name: &str) -> Result<Value, CustomError> {
-        for i in (0..self.scope){
+        for i in 0..self.scope{
             match self.variables[i].get(name){
                 Some(value) => return Ok(value.clone()),
                 None => continue,
@@ -24,7 +24,7 @@ impl VariableManager {
     }
 
     pub fn set_variable(&mut self, name: &str, value: Value) {
-        for i in (0..self.scope){
+        for i in 0..self.scope{
             match self.variables[i].get(name){
                 Some(_) => {
                     self.variables[i].insert(name.to_string(), value);

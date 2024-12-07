@@ -1,6 +1,5 @@
 
 use crate::errors::CustomError;
-use std::collections::HashMap;
 use crate::value::Value;
 use crate::variables::VariableManager;
 
@@ -267,6 +266,55 @@ impl Instruction for ConditionBlock {
             variables.exit_scope();
         }
         return Ok(Value::Null())
+    }
+}
+
+pub struct ConditionLoop{
+    conditions: Condition,
+    instructions: Vec<Box<dyn Instruction>>,
+}
+
+impl ConditionLoop{
+    pub fn new(conditions: Condition, instructions: Vec<Box<dyn Instruction>>) -> ConditionLoop {
+        ConditionLoop{conditions, instructions}
+    }
+}
+
+impl Instruction for ConditionLoop{
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value, CustomError> {
+        let mut run = true;
+        let mut condition:bool;
+        while run == true {
+            match self.conditions.get_value(variables) {
+                Ok(value) => {
+                    match value {
+                        Value ::Boolean(b) => condition = b,
+                        Value::Null() => condition = false,
+                        _ => condition = false,
+                    }
+                },
+                Err(e) => return Err(e),
+            }
+            if condition {
+                variables.enter_scope();
+                for instruction in &self.instructions {
+                    match instruction.execute(variables) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            variables.exit_scope();
+                            return Err(e)
+                        },
+                    }
+                }
+                variables.exit_scope();
+            }else{
+                run = false;
+            }
+
+
+        }
+
+        return Ok(Value::new_null())
     }
 }
 
