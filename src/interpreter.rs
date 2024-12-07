@@ -284,7 +284,7 @@ impl Instruction for ConditionLoop{
     fn execute(&self, variables: &mut VariableManager) -> Result<Value, CustomError> {
         let mut run = true;
         let mut condition:bool;
-        while run == true {
+        while run{
             match self.conditions.get_value(variables) {
                 Ok(value) => {
                     match value {
@@ -310,8 +310,6 @@ impl Instruction for ConditionLoop{
             }else{
                 run = false;
             }
-
-
         }
 
         return Ok(Value::new_null())
