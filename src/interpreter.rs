@@ -226,12 +226,39 @@ pub struct Interpreter {
 
 pub struct ConditionBlock {
     conditions: Condition,
-    instructions: Vec<Box<dyn Instruction>>,
+    instructions: InstructionBlock,
 }
 
 impl ConditionBlock {
-    pub fn new(conditions: Condition, instructions: Vec<Box<dyn Instruction>>) -> ConditionBlock {
+    pub fn new(conditions: Condition, instructions:InstructionBlock) -> ConditionBlock {
         ConditionBlock{conditions, instructions}
+    }
+}
+
+pub struct InstructionBlock {
+    instructions: Vec<Box<dyn Instruction>>,
+}
+
+impl InstructionBlock {
+    pub fn new(instructions: Vec<Box<dyn Instruction>>) -> InstructionBlock {
+        InstructionBlock{instructions}
+    }
+}
+
+impl Instruction for InstructionBlock {
+    fn execute(&self, variables: &mut VariableManager) -> Result<Value, CustomError> {
+        variables.enter_scope();
+        for instruction in &self.instructions {
+            match instruction.execute(variables) {
+                Ok(_) => (),
+                Err(e) => {
+                    variables.exit_scope();
+                    return Err(e)
+                },
+            }
+        }
+        variables.exit_scope();
+        return Ok(Value::Null())
     }
 }
 
@@ -249,17 +276,7 @@ impl Instruction for ConditionBlock {
             Err(e) => return Err(e),
         }
         if condition {
-            variables.enter_scope();
-            for instruction in &self.instructions {
-                match instruction.execute(variables) {
-                    Ok(_) => (),
-                    Err(e) => {
-                        variables.exit_scope();
-                        return Err(e)
-                    },
-                }
-            }
-            variables.exit_scope();
+            return self.instructions.execute(variables);
         }
         return Ok(Value::Null())
     }
@@ -267,11 +284,11 @@ impl Instruction for ConditionBlock {
 
 pub struct ConditionLoop{
     conditions: Condition,
-    instructions: Vec<Box<dyn Instruction>>,
+    instructions: InstructionBlock,
 }
 
 impl ConditionLoop{
-    pub fn new(conditions: Condition, instructions: Vec<Box<dyn Instruction>>) -> ConditionLoop {
+    pub fn new(conditions: Condition, instructions: InstructionBlock) -> ConditionLoop {
         ConditionLoop{conditions, instructions}
     }
 }
@@ -292,17 +309,10 @@ impl Instruction for ConditionLoop{
                 Err(e) => return Err(e),
             }
             if condition {
-                variables.enter_scope();
-                for instruction in &self.instructions {
-                    match instruction.execute(variables) {
-                        Ok(_) => (),
-                        Err(e) => {
-                            variables.exit_scope();
-                            return Err(e)
-                        },
-                    }
-                }
-                variables.exit_scope();
+               match self.instructions.execute(variables){
+                     Ok(_) => (),
+                     Err(e) => return Err(e),
+               }
             }else{
                 run = false;
             }

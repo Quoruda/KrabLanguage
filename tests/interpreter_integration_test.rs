@@ -1,5 +1,5 @@
 extern crate KrabLanguage;
-use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition, ConditionBlock, ConditionLoop, Instruction};
+use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition, ConditionBlock, ConditionLoop, Instruction, InstructionBlock};
 use KrabLanguage::value::Value;
 use KrabLanguage::errors::CustomError;
 
@@ -144,6 +144,32 @@ fn test_non_existing_variable(){
         Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
     }
 }
+
+#[test]
+fn test_instruction_block(){
+    let mut interpreter = get_interpreter();
+    let affectation = Affectation::new("a", Box::new(FloatValue::new(10.0)));
+    let _ = interpreter.execute(&affectation);
+    let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
+    let affectation2 = Affectation::new("b", Box::new(FloatValue::new(30.0)));
+    let instruction_block = InstructionBlock::new(vec![Box::new(affectation), Box::new(affectation2)]);
+    let result = interpreter.execute(&instruction_block);
+    match result {
+        Ok(_) => {},
+        Err(_) => assert!(false)
+    }
+    let var = interpreter.get_variable("a");
+    match var {
+        Ok(value) => assert!(eq_values(&value, &Value::new_float(20.0))),
+        Err(_) => assert!(false)
+    }
+    let var = interpreter.get_variable("b");
+    match var {
+        Ok(_) => assert!(false),
+        Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
+    }
+}
+
 #[test]
 fn test_condition_less_than(){
     let mut interpreter = get_interpreter();
@@ -196,7 +222,7 @@ fn test_condition_block_success(){
     let _ = interpreter.execute(&affectation);
     let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '<');
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
-    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
+    let condition_block = ConditionBlock::new(condition,  InstructionBlock::new(vec![Box::new(affectation)]));
     let _result = interpreter.execute(&condition_block);
     let var = interpreter.get_variable("a");
     match var {
@@ -210,7 +236,7 @@ fn test_access_variable_in_condition_block(){
     let mut interpreter = get_interpreter();
     let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '<');
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
-    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
+    let condition_block = ConditionBlock::new(condition, InstructionBlock::new(vec![Box::new(affectation)]));
     let _result = interpreter.execute(&condition_block);
     let var = interpreter.get_variable("a");
     match var {
@@ -226,7 +252,7 @@ fn test_condition_block_fail() {
     let _ = interpreter.execute(&affectation);
     let condition = Condition::new(Box::new(FloatValue::new(10.0)), Box::new(FloatValue::new(20.0)), '>');
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
-    let condition_block = ConditionBlock::new(condition, vec![Box::new(affectation)]);
+    let condition_block = ConditionBlock::new(condition,  InstructionBlock::new(vec![Box::new(affectation)]));
     let _result = interpreter.execute(&condition_block);
     let var = interpreter.get_variable("a");
     match var {
@@ -244,7 +270,7 @@ fn test_condition_loop(){
     let condition = Condition::new(Box::new(Variable::new("a")), Box::new(IntegerValue::new(100)), '<');
     let operation = Operation::new(Box::new(Variable::new("a")), Box::new(IntegerValue::new(1)), '+');
     let affectation = Affectation::new("a", Box::new(operation));
-    let condition_loop = ConditionLoop::new(condition,  vec![Box::new(affectation)]);
+    let condition_loop = ConditionLoop::new(condition,   InstructionBlock::new( vec![Box::new(affectation)]));
     let result = interpreter.execute(&condition_loop);
     match result {
         Ok(_) => {},
@@ -264,7 +290,7 @@ fn test_access_variable_in_condition_loop(){
     let operation = Operation::new(Box::new(Variable::new("a")), Box::new(IntegerValue::new(1)), '+');
     let affectation = Affectation::new("a", Box::new(operation));
     let affectation2 = Affectation::new("b", Box::new(IntegerValue::new(1)));
-    let condition_loop = ConditionLoop::new(condition,  vec![Box::new(affectation), Box::new(affectation2)]);
+    let condition_loop = ConditionLoop::new(condition,   InstructionBlock::new(vec![Box::new(affectation), Box::new(affectation2)]));
     let result = interpreter.execute(&condition_loop);
     match result {
         Ok(_) => {},
