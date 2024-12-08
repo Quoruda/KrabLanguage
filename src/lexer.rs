@@ -43,6 +43,13 @@ impl Token{
         }
     }
 
+    pub fn new_comparator(value: &str) -> Token{
+        Token{
+            token_type: "COMPARATOR".to_string(),
+            value: value.to_string(),
+        }
+    }
+
     pub fn get_token_type(&self) -> &str{
         &self.token_type
     }
@@ -68,12 +75,14 @@ impl Clone for Token{
 
 pub struct Lexer{
     operators: Vec<char>,
+    comparator: Vec<char>,
 }
 
 impl Lexer{
     pub fn new() -> Lexer{
         Lexer{
             operators: vec!['+', '-', '*', '/'],
+            comparator: vec!['>', '<'],
         }
     }
 
@@ -129,13 +138,20 @@ impl Lexer{
                 i += 1;
                 continue;
             }
-
+            if self.comparator.contains(&c){
+                let mut j = i;
+                while j < input.len() && (self.comparator.contains(&input.chars().nth(j).unwrap()) || input.chars().nth(j).unwrap() == '='){
+                    j += 1;
+                }
+                tokens.push(Token::new_comparator(&input[i..j]));
+                i = j;
+                continue;
+            }
             if c == '='{
                 tokens.push(Token::new_assign("="));
                 i += 1;
                 continue;
             }
-
             return Err(CustomError::new_lexer_error(&format!("Unknown character: {}", c)));
         }
         Ok(tokens)

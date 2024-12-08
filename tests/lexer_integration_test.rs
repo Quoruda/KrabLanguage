@@ -172,3 +172,48 @@ fn invalid_number(){
         Err(err) => assert!(err.equals(&CustomError::new_lexer_error("Invalid number")))
     }
 }
+
+#[test]
+fn test_comparator(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("a > b");
+    let expected_tokens = vec![
+        Token::new_identifier("a"),
+        Token::new_comparator(">"),
+        Token::new_identifier("b")
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+    let tokens = lexer.lex("a >= b");
+    let expected_tokens = vec![
+        Token::new_identifier("a"),
+        Token::new_comparator(">="),
+        Token::new_identifier("b")
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+    let tokens = lexer.lex("a < b");
+    let expected_tokens = vec![
+        Token::new_identifier("a"),
+        Token::new_comparator("<"),
+        Token::new_identifier("b")
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+    let tokens = lexer.lex("a <= b");
+    let expected_tokens = vec![
+        Token::new_identifier("a"),
+        Token::new_comparator("<="),
+        Token::new_identifier("b")
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+}

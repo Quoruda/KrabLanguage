@@ -1,4 +1,4 @@
-use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable, IntegerValue};
+use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable, IntegerValue, Condition};
 use crate::lexer::Token;
 use crate::errors::CustomError;
 
@@ -35,12 +35,26 @@ impl Parser{
             return Err(CustomError::new_parser_error(&format!("Unexpected value: {}", tokens[0].get_value())));
         }else{
             if tokens.len() == 3{
-                if Self::is_value(&tokens[0]) && tokens[1].get_token_type() == Token::new_operator("+").get_token_type() && Self::is_value(&tokens[2]){
-                    let left = self.get_valuable(vec![tokens[0].clone()])?;
-                    let right = self.get_valuable(vec![tokens[2].clone()])?;
-                    let operator:char = tokens[1].get_value().chars().nth(0).unwrap();
-                    return Ok(Box::new(Operation::new(left, right, operator)));
+                if Self::is_value(&tokens[0]) && Self::is_value(&tokens[2]){
+                    if tokens[1].get_token_type() == Token::new_operator("+").get_token_type(){
+                        let left = self.get_valuable(vec![tokens[0].clone()])?;
+                        let right = self.get_valuable(vec![tokens[2].clone()])?;
+                        let operator:char = tokens[1].get_value().chars().nth(0).unwrap();
+                        return Ok(Box::new(Operation::new(left, right, operator)));
+                    }else if tokens[1].get_token_type() == Token::new_comparator(">").get_token_type(){
+                        let left = self.get_valuable(vec![tokens[0].clone()])?;
+                        let right = self.get_valuable(vec![tokens[2].clone()])?;
+                        let comparator:char;
+                        match tokens[1].get_value() {
+                            ">" => comparator = '>',
+                            "<" => comparator = '<',
+                            _ => return Err(CustomError::new_parser_error("Not implemented yet")),
+                        }
+                        return Ok(Box::new(Condition::new(left, right, comparator)));
+                    }
+
                 }
+
             }
             return Err(CustomError::new_parser_error("Not implemented yet"));
         }
