@@ -94,25 +94,21 @@ impl Operation {
 
 impl Valuable for Operation {
     fn get_value(&self, variables: &mut VariableManager) -> Result<Value, CustomError>  {
-        let left; let right;
         match self.left.get_value(variables) {
-            Ok(value) => left = value,
-            Err(e) => return Err(e),
-        }
-        match self.right.get_value(variables) {
-            Ok(value) => right = value,
-            Err(e) => return Err(e),
-        }
-        let result;
-        match self.operator {
-            '+' => result = left.add(&right),
-            '-' => result = left.sub(&right),
-            '*' => result = left.mul(&right),
-            '/' => result = left.div(&right),
-            _ => return Err(CustomError::new_operator_not_found_error(self.operator)),
-        }
-        match result {
-            Ok(value) => Ok(value),
+            Ok(value) => {
+                match self.right.get_value(variables) {
+                    Ok(value2) => {
+                        match self.operator {
+                            '+' => return value.add(&value2),
+                            '-' => return value.sub(&value2),
+                            '*' => return value.mul(&value2),
+                            '/' => return value.div(&value2),
+                            _ => return Err(CustomError::new_operator_not_found_error(self.operator)),
+                        }
+                    },
+                    Err(e) => Err(e),
+                }
+            },
             Err(e) => Err(e),
         }
     }
