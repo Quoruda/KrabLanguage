@@ -30,6 +30,11 @@ impl CustomError {
 
     pub fn new_parser_error(message: &str) -> CustomError{CustomError::new(message, "ParserError")}
 
+
+    pub fn new_file_not_found_error(file_path: &str) -> CustomError{
+        CustomError::new(&format!("File {} not found", file_path), "FileNotFoundError")
+    }
+
     pub fn get_message(&self) -> &str {
         &self.message
     }
