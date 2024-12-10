@@ -283,13 +283,13 @@ impl Instruction for ConditionBlock {
 }
 
 pub struct ConditionLoop{
-    conditions: Condition,
+    condition: Box<dyn Valuable>,
     instructions: InstructionBlock,
 }
 
 impl ConditionLoop{
-    pub fn new(conditions: Condition, instructions: InstructionBlock) -> ConditionLoop {
-        ConditionLoop{conditions, instructions}
+    pub fn new(condition: Box<dyn Valuable>, instructions: InstructionBlock) -> ConditionLoop {
+        ConditionLoop{condition, instructions}
     }
 }
 
@@ -298,7 +298,7 @@ impl Instruction for ConditionLoop{
         let mut run = true;
         let mut condition:bool;
         while run{
-            match self.conditions.get_value(variables) {
+            match self.condition.get_value(variables) {
                 Ok(value) => {
                     match value {
                         Value ::Boolean(b) => condition = b,
