@@ -43,7 +43,7 @@ impl CustomError {
         &self.error_type
     }
 
-    pub fn equals(&self, error: &CustomError) -> bool {
+    pub fn _equals(&self, error: &CustomError) -> bool {
         self.message == error.message && self.error_type == error.error_type
     }
 
@@ -51,7 +51,7 @@ impl CustomError {
 
 impl Display for CustomError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
+        write!(f, "{}:{}", self.get_error_type(), self.get_message())
     }
 }
 

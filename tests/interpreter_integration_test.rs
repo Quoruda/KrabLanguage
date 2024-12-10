@@ -1,7 +1,7 @@
-extern crate KrabLanguage;
-use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition, ConditionBlock, ConditionLoop, Instruction, InstructionBlock};
-use KrabLanguage::value::Value;
-use KrabLanguage::errors::CustomError;
+extern crate krab_language;
+use krab_language::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition, ConditionBlock, ConditionLoop, InstructionBlock};
+use krab_language::value::Value;
+use krab_language::errors::CustomError;
 
 fn get_interpreter() -> Interpreter {
     Interpreter::new()
@@ -19,7 +19,10 @@ fn test_affectation_number() {
     let mut interpreter = get_interpreter();
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
     let _ = interpreter.execute(&affectation);
-    let result = interpreter.get_variable("a");
+    let result = {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    };
     match result {
         Ok(value) => assert!(eq_values(&value,&Value::new_float(20.0))),
         Err(_) =>  assert!(false)
@@ -31,7 +34,10 @@ fn test_affectation_string() {
     let mut interpreter = get_interpreter();
     let affectation = Affectation::new("a", Box::new(StringValue::new("Hello")));
     let _ = interpreter.execute(&affectation);
-    let result = interpreter.get_variable("a");
+    let result = {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    };
     match result {
         Ok(value) => assert!(eq_values(&value,&Value::new_string("Hello"))),
         Err(_) =>  assert!(false)
@@ -141,7 +147,7 @@ fn test_non_existing_variable(){
     let result = interpreter.execute(&affectation);
     match result {
         Ok(_) => assert!(false),
-        Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
+        Err(e) => assert!(e._equals(&CustomError::new_variable_not_found_error("b")))
     }
 }
 
@@ -158,15 +164,21 @@ fn test_instruction_block(){
         Ok(_) => {},
         Err(_) => assert!(false)
     }
-    let var = interpreter.get_variable("a");
+    let var = {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    };
     match var {
         Ok(value) => assert!(eq_values(&value, &Value::new_float(20.0))),
         Err(_) => assert!(false)
     }
-    let var = interpreter.get_variable("b");
+    let var = {
+        let this = &mut interpreter;
+        this.variables.get_variable("b")
+    };
     match var {
         Ok(_) => assert!(false),
-        Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
+        Err(e) => assert!(e._equals(&CustomError::new_variable_not_found_error("b")))
     }
 }
 
@@ -211,7 +223,7 @@ fn test_error_condition(){
     let result = interpreter.execute(&condition);
     match result {
         Ok(_) => assert!(false),
-        Err(e) => assert!(e.equals(&CustomError::new_operator_not_found_error('a')))
+        Err(e) => assert!(e._equals(&CustomError::new_operator_not_found_error('a')))
     }
 }
 
@@ -224,7 +236,10 @@ fn test_condition_block_success(){
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
     let condition_block = ConditionBlock::new(Box::new(condition),  InstructionBlock::new(vec![Box::new(affectation)]));
     let _result = interpreter.execute(&condition_block);
-    let var = interpreter.get_variable("a");
+    let var = {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    };
     match var {
         Ok(value) => assert!(eq_values(&value, &Value::new_float(20.0))),
         Err(_) => assert!(false)
@@ -238,10 +253,13 @@ fn test_access_variable_in_condition_block(){
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
     let condition_block = ConditionBlock::new(Box::new(condition), InstructionBlock::new(vec![Box::new(affectation)]));
     let _result = interpreter.execute(&condition_block);
-    let var = interpreter.get_variable("a");
+    let var = {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    };
     match var {
         Ok(_) => assert!(false),
-        Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("a")))
+        Err(e) => assert!(e._equals(&CustomError::new_variable_not_found_error("a")))
     }
 }
 
@@ -254,7 +272,10 @@ fn test_condition_block_fail() {
     let affectation = Affectation::new("a", Box::new(FloatValue::new(20.0)));
     let condition_block = ConditionBlock::new(Box::new(condition),  InstructionBlock::new(vec![Box::new(affectation)]));
     let _result = interpreter.execute(&condition_block);
-    let var = interpreter.get_variable("a");
+    let var = {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    };
     match var {
         Ok(_) => assert!(eq_values(&var.unwrap(), &Value::new_float(10.0))),
         Err(_) => assert!(true)
@@ -276,7 +297,10 @@ fn test_condition_loop(){
         Ok(_) => {},
         Err(_) => assert!(false)
     }
-    match interpreter.get_variable("a"){
+    match {
+        let this = &mut interpreter;
+        this.variables.get_variable("a")
+    }{
         Ok(v) => assert!(eq_values(&v,&Value::new_integer(100) )),
         Err(_) => assert!(false)
     }
@@ -296,8 +320,11 @@ fn test_access_variable_in_condition_loop(){
         Ok(_) => {},
         Err(_) => assert!(false)
     }
-    match interpreter.get_variable("b"){
+    match {
+        let this = &mut interpreter;
+        this.variables.get_variable("b")
+    }{
         Ok(_) => assert!(false),
-        Err(e) => assert!(e.equals(&CustomError::new_variable_not_found_error("b")))
+        Err(e) => assert!(e._equals(&CustomError::new_variable_not_found_error("b")))
     }
 }

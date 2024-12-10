@@ -1,6 +1,6 @@
 use std::vec::Vec;
 use crate::errors::CustomError;
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 
 pub struct Token{
     token_type: String,

@@ -125,7 +125,7 @@ impl Value {
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn _to_string(&self) -> String {
         match self {
             Value::Integer(i) => i.to_string(),
             Value::Float(f) => f.to_string(),

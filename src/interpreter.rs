@@ -193,6 +193,8 @@ impl Condition {
         match self.operator {
             '>' => result = left.gt(&right),
             '<' => result = left.lt(&right),
+            '=' => result = left.eq(&right),
+            '≠' => result = left.neq(&right),
             _ => return Err(CustomError::new_operator_not_found_error(self.operator)),
         }
         match result {
@@ -329,7 +331,7 @@ impl Interpreter{
         }
     }
 
-    pub fn get_variable(&mut self, name: &str) -> Result<Value, CustomError> {
+    pub fn _get_variable(&mut self, name: &str) -> Result<Value, CustomError> {
         self.variables.get_variable(name)
     }
 

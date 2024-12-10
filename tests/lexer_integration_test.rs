@@ -1,7 +1,7 @@
-extern crate KrabLanguage;
+extern crate krab_language;
 
-use KrabLanguage::errors::CustomError;
-use KrabLanguage::lexer::{Lexer, Token};
+use krab_language::errors::CustomError;
+use krab_language::lexer::{Lexer, Token};
 
 fn compare_tokens(tokens: Vec<Token>, expected_tokens: Vec<Token>) -> bool {
     if tokens.len() != expected_tokens.len() {
@@ -141,7 +141,7 @@ fn invalid_character(){
     let tokens = lexer.lex("#");
     match tokens {
         Ok(_) => assert!(false),
-        Err(err) => assert!(err.equals(&CustomError::new_lexer_error("Unknown character: #")))
+        Err(err) => assert!(err._equals(&CustomError::new_lexer_error("Unknown character: #")))
     }
     let tokens = lexer.lex("\"#\"");
     let expected_tokens = vec![
@@ -159,7 +159,7 @@ fn invalid_string(){
     let tokens = lexer.lex("\"hello");
     match tokens {
         Ok(_) => assert!(false),
-        Err(err) => assert!(err.equals(&CustomError::new_lexer_error("String not closed")))
+        Err(err) => assert!(err._equals(&CustomError::new_lexer_error("String not closed")))
     }
 }
 
@@ -169,7 +169,7 @@ fn invalid_number(){
     let tokens = lexer.lex("123.456.789");
     match tokens {
         Ok(_) => assert!(false),
-        Err(err) => assert!(err.equals(&CustomError::new_lexer_error("Invalid number")))
+        Err(err) => assert!(err._equals(&CustomError::new_lexer_error("Invalid number")))
     }
 }
 
