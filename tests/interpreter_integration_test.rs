@@ -270,7 +270,7 @@ fn test_condition_loop(){
     let condition = Condition::new(Box::new(Variable::new("a")), Box::new(IntegerValue::new(100)), '<');
     let operation = Operation::new(Box::new(Variable::new("a")), Box::new(IntegerValue::new(1)), '+');
     let affectation = Affectation::new("a", Box::new(operation));
-    let condition_loop = ConditionLoop::new(condition,   InstructionBlock::new( vec![Box::new(affectation)]));
+    let condition_loop = ConditionLoop::new(Box::new(condition),   InstructionBlock::new( vec![Box::new(affectation)]));
     let result = interpreter.execute(&condition_loop);
     match result {
         Ok(_) => {},
@@ -290,7 +290,7 @@ fn test_access_variable_in_condition_loop(){
     let operation = Operation::new(Box::new(Variable::new("a")), Box::new(IntegerValue::new(1)), '+');
     let affectation = Affectation::new("a", Box::new(operation));
     let affectation2 = Affectation::new("b", Box::new(IntegerValue::new(1)));
-    let condition_loop = ConditionLoop::new(condition,   InstructionBlock::new(vec![Box::new(affectation), Box::new(affectation2)]));
+    let condition_loop = ConditionLoop::new(Box::new(condition),   InstructionBlock::new(vec![Box::new(affectation), Box::new(affectation2)]));
     let result = interpreter.execute(&condition_loop);
     match result {
         Ok(_) => {},

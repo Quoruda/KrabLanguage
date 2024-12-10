@@ -97,17 +97,17 @@ fn parenthesis_test() {
     let lexer = Lexer::new();
     let tokens = lexer.lex("(a + b) * (c - d)");
     let expected_tokens = vec![
-        Token::new_operator("("),
+        Token::new_parenthesis("("),
         Token::new_identifier("a"),
         Token::new_operator("+"),
         Token::new_identifier("b"),
-        Token::new_operator(")"),
+        Token::new_parenthesis(")"),
         Token::new_operator("*"),
-        Token::new_operator("("),
+        Token::new_parenthesis("("),
         Token::new_identifier("c"),
         Token::new_operator("-"),
         Token::new_identifier("d"),
-        Token::new_operator(")")
+        Token::new_parenthesis(")")
     ];
     match tokens {
         Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
@@ -123,11 +123,11 @@ fn semicolon_test() {
         Token::new_identifier("a"),
         Token::new_assign("="),
         Token::new_number("20"),
-        Token::new_operator(";"),
+        Token::new_semicolon(),
         Token::new_identifier("b"),
         Token::new_assign("="),
         Token::new_number("30"),
-        Token::new_operator(";")
+        Token::new_semicolon()
     ];
     match tokens {
         Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
@@ -217,3 +217,61 @@ fn test_comparator(){
         Err(_) => assert!(false)
     }
 }
+
+#[test]
+fn test_bracket(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("{a = 20}");
+    let expected_tokens = vec![
+        Token::new_bracket("{"),
+        Token::new_identifier("a"),
+        Token::new_assign("="),
+        Token::new_number("20"),
+        Token::new_bracket("}")
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
+fn test_while(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("while a < b { a = a + 1; }");
+    let expected_tokens = vec![
+        Token::new_keyword("while"),
+        Token::new_identifier("a"),
+        Token::new_comparator("<"),
+        Token::new_identifier("b"),
+        Token::new_bracket("{"),
+        Token::new_identifier("a"),
+        Token::new_assign("="),
+        Token::new_identifier("a"),
+        Token::new_operator("+"),
+        Token::new_number("1"),
+        Token::new_semicolon(),
+        Token::new_bracket("}")
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
+fn test_line_feed(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("a = 20\nb = 30");
+    let expected_tokens = vec![
+        Token::new_identifier("a"),
+        Token::new_assign("="),
+        Token::new_number("20"),
+        Token::new_identifier("b"),
+        Token::new_assign("="),
+        Token::new_number("30")
+    ];
+}
+
+
+

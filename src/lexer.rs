@@ -50,6 +50,34 @@ impl Token{
         }
     }
 
+    pub fn new_semicolon() -> Token{
+        Token{
+            token_type: "SEMICOLON".to_string(),
+            value: ";".to_string(),
+        }
+    }
+
+    pub fn new_parenthesis(value: &str) -> Token{
+        Token{
+            token_type: "PARENTHESIS".to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    pub fn new_bracket(value: &str) -> Token{
+        Token{
+            token_type: "BRACKET".to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    pub fn new_keyword(value: &str) -> Token{
+        Token{
+            token_type: "KEYWORD".to_string(),
+            value: value.to_string(),
+        }
+    }
+
     pub fn get_token_type(&self) -> &str{
         &self.token_type
     }
@@ -76,6 +104,7 @@ impl Clone for Token{
 pub struct Lexer{
     operators: Vec<char>,
     comparator: Vec<char>,
+    keywords: Vec<String>,
 }
 
 impl Lexer{
@@ -83,6 +112,7 @@ impl Lexer{
         Lexer{
             operators: vec!['+', '-', '*', '/'],
             comparator: vec!['>', '<'],
+            keywords: vec!["while".to_string()]
         }
     }
 
@@ -91,12 +121,22 @@ impl Lexer{
         let mut i = 0;
         while i < input.len(){
             let c = input.chars().nth(i).unwrap();
-            if c.is_whitespace(){
+            if c.is_whitespace() || c == '\n' || c == '\t' || c == '\r'{
                 i += 1;
                 continue;
             }
-            if c == '(' || c == ')'  || c == ';'{
-                tokens.push(Token::new_operator(&c.to_string()));
+            if c == '(' || c == ')'{
+                tokens.push(Token::new_parenthesis(&c.to_string()));
+                i += 1;
+                continue;
+            }
+            if c == '{' || c == '}'{
+                tokens.push(Token::new_bracket(&c.to_string()));
+                i += 1;
+                continue;
+            }
+            if c == ';'{
+                tokens.push(Token::new_semicolon());
                 i += 1;
                 continue;
             }
@@ -105,7 +145,11 @@ impl Lexer{
                 while j < input.len() && (input.chars().nth(j).unwrap().is_alphabetic() || input.chars().nth(j).unwrap() == '_' || input.chars().nth(j).unwrap().is_numeric()){
                     j += 1;
                 }
-                tokens.push(Token::new_identifier(&input[i..j]));
+                if self.keywords.contains(&input[i..j].to_string()){
+                    tokens.push(Token::new_keyword(&input[i..j]));
+                }else{
+                    tokens.push(Token::new_identifier(&input[i..j]));
+                }
                 i = j;
                 continue;
             }
