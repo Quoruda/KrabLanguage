@@ -225,12 +225,12 @@ pub struct Interpreter {
 }
 
 pub struct ConditionBlock {
-    conditions: Condition,
+    conditions: Box<dyn Valuable>,
     instructions: InstructionBlock,
 }
 
 impl ConditionBlock {
-    pub fn new(conditions: Condition, instructions:InstructionBlock) -> ConditionBlock {
+    pub fn new(conditions: Box<dyn Valuable>, instructions:InstructionBlock) -> ConditionBlock {
         ConditionBlock{conditions, instructions}
     }
 }

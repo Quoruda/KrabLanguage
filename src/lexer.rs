@@ -1,5 +1,6 @@
 use std::vec::Vec;
 use crate::errors::CustomError;
+use std::fmt::{Debug, Formatter};
 
 pub struct Token{
     token_type: String,
@@ -101,6 +102,12 @@ impl Clone for Token{
     }
 }
 
+impl Debug for Token{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}" ,self.value)
+    }
+}
+
 pub struct Lexer{
     operators: Vec<char>,
     comparator: Vec<char>,
@@ -112,7 +119,7 @@ impl Lexer{
         Lexer{
             operators: vec!['+', '-', '*', '/'],
             comparator: vec!['>', '<'],
-            keywords: vec!["while".to_string()]
+            keywords: vec!["while".to_string(), "if".to_string()]
         }
     }
 
