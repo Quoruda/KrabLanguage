@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::errors::CustomError;
 use crate::value::Value;
+use std::fmt::{Debug, Formatter};
 
 pub struct VariableManager {
     variables: Vec<HashMap<String, Value>>,
@@ -46,5 +47,11 @@ impl VariableManager {
     pub fn exit_scope(&mut self){
         self.variables.pop();
         self.scope -= 1;
+    }
+}
+
+impl Debug for VariableManager{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.variables)
     }
 }
