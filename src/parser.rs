@@ -1,4 +1,4 @@
-use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable, IntegerValue, Condition, InstructionBlock, ConditionLoop};
+use crate::interpreter::{Instruction, Operation, FloatValue, StringValue, Variable, Affectation, Valuable, IntegerValue, Condition, InstructionBlock, ConditionLoop, ConditionBlock};
 use crate::lexer::Token;
 use crate::errors::CustomError;
 
@@ -60,6 +60,28 @@ impl Parser{
         }
     }
 
+    fn get_block(&self, tokens: Vec<Token>) -> Result<Vec<Box<dyn Instruction>>, CustomError>{
+        let mut j = 0;
+        let mut bracket_count = 0;
+        while j < tokens.len() && (!tokens[j].equals(&Token::new_bracket("}")) || bracket_count != 0){
+            if tokens[j].equals(&Token::new_bracket("{")){
+                bracket_count += 1;
+            }else if tokens[j].equals(&Token::new_bracket("}")){
+                bracket_count -= 1;
+            }
+            j += 1;
+        }
+         if j == tokens.len(){
+            return Err(CustomError::new_parser_error("'}' expected but none found"));
+        }else if j < tokens.len()-1{
+            return Err(CustomError::new_parser_error(&format!("Unexpected token after '}}': {}", tokens[j+1].get_value())));
+        }
+        match self.parse_instructions(tokens[0..j].to_vec()){
+            Ok(instructions) => return Ok(instructions),
+            Err(error) => return Err(error),
+        }
+    }
+
     pub fn parse_instructions(&self, tokens: Vec<Token>) -> Result<Vec<Box<dyn Instruction>>, CustomError>{
         let mut instructions = Vec::new();
         let mut i = 0;
@@ -74,7 +96,8 @@ impl Parser{
                 }
                 j += 1;
             }
-            let instruction = self.parse(tokens[i..j].to_vec());
+            let part = tokens[i..j].to_vec();
+            let instruction = self.parse(part);
             match instruction{
                 Ok(instruction) => instructions.push(instruction),
                 Err(error) => return Err(error),
@@ -105,7 +128,7 @@ impl Parser{
             }
         }
         
-        if tokens[0].equals(&Token::new_keyword("while")){
+        if tokens[0].equals(&Token::new_keyword("while") ) || tokens[0].equals(&Token::new_keyword("if")){
             let tks = tokens[1..].to_vec();
             let mut i = 0;
             while i < tks.len() && !tks[i].equals(&Token::new_bracket("{")){
@@ -119,18 +142,16 @@ impl Parser{
                 Ok(c) => condition = c,
                 Err(error) => return Err(error),
             }
-            let mut j = i + 1;
-            while j < tks.len() && !tks[j].equals(&Token::new_bracket("}")){
-                j += 1;
-            }
-             if j == tks.len(){
-                return Err(CustomError::new_parser_error("'}' expected but none found"));
-            }
-            let block = self.parse_instructions(tks[i+1..j].to_vec());
-            match block{
-                Ok(block) => return Ok(Box::new(ConditionLoop::new(condition, InstructionBlock::new(block)))),
+            let instructions;
+            match self.get_block(tks[i+1..].to_vec()){
+                Ok(its) => instructions = its,
                 Err(error) => return Err(error),
-            } 
+            }
+            if tokens[0].equals(&Token::new_keyword("while")){
+                return Ok(Box::new(ConditionLoop::new(condition, InstructionBlock::new(instructions))));
+            }else{
+                return Ok(Box::new(ConditionBlock::new(condition, InstructionBlock::new(instructions))));
+            }
         }
         
         match self.get_valuable(tokens.clone()){
