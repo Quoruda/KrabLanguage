@@ -123,11 +123,23 @@ impl Lexer{
         }
     }
 
-    pub fn lex(&self, input: &str) -> Result<Vec<Token>,CustomError>{
+    pub fn lex(&self, input: &String) -> Result<Vec<Token>,CustomError>{
         let mut tokens = Vec::new();
         let mut i = 0;
-        while i < input.len(){
-            let c = input.chars().nth(i).unwrap();
+        let chars: Vec<char> = input.chars().collect();
+        while i < chars.len(){
+            let c = chars[i];
+            if c == '#'{
+                let mut j = i+1;
+                while j < chars.len() && chars[j] != '#'{
+                    j += 1;
+                }
+                if j >= chars.len() {
+                    return Err(CustomError::new_lexer_error("Comment not closed"));
+                }
+                i = j+1;
+                continue;
+            }
             if c.is_whitespace() || c == '\n' || c == '\t' || c == '\r'{
                 i += 1;
                 continue;
@@ -147,40 +159,40 @@ impl Lexer{
                 i += 1;
                 continue;
             }
-            if c.is_alphabetic() || c == '_'{
+            if c.is_ascii_alphabetic() || c == '_'{
                 let mut j = i;
-                while j < input.len() && (input.chars().nth(j).unwrap().is_alphabetic() || input.chars().nth(j).unwrap() == '_' || input.chars().nth(j).unwrap().is_numeric()){
+                while j < chars.len() && (chars[j].is_ascii_alphabetic() || chars[j] == '_' || chars[j].is_numeric()){
                     j += 1;
                 }
-                if self.keywords.contains(&input[i..j].to_string()){
-                    tokens.push(Token::new_keyword(&input[i..j]));
+                if self.keywords.contains(&chars[i..j].iter().collect::<String>()){
+                    tokens.push(Token::new_keyword(&chars[i..j].iter().collect::<String>()));
                 }else{
-                    tokens.push(Token::new_identifier(&input[i..j]));
+                    tokens.push(Token::new_identifier(&chars[i..j].iter().collect::<String>()));
                 }
                 i = j;
                 continue;
             }
             if c.is_numeric() {
                 let mut j = i;
-                while j < input.len() && (input.chars().nth(j).unwrap().is_numeric() || input.chars().nth(j).unwrap() == '.'){
+                while j < chars.len() && (chars[j].is_numeric() || chars[j] == '.'){
                     j += 1;
                 }
-                if input[i..j].matches('.').count() > 1{
+                if chars[i..j].iter().collect::<String>().matches('.').count() > 1{
                     return Err(CustomError::new_lexer_error("Invalid number"));
                 }
-                tokens.push(Token::new_number(&input[i..j]));
+                tokens.push(Token::new_number(&chars[i..j].iter().collect::<String>()));
                 i = j;
                 continue;
             }
             if c == '"'{
                 let mut j = i + 1;
-                while j < input.len() && input.chars().nth(j).unwrap() != '"'{
+                while j < chars.len() && chars[j] != '"'{
                     j += 1;
                 }
-                if j == input.len() && input.chars().nth(j-1).unwrap() != '"'{
+                if j == chars.len() && chars[j-1] != '"'{
                     return Err(CustomError::new_lexer_error("String not closed"));
                 }
-                tokens.push(Token::new_string(&input[i+1..j]));
+                tokens.push(Token::new_string(&chars[i+1..j].iter().collect::<String>()));
                 i = j + 1;
                 continue;
             }
@@ -191,10 +203,10 @@ impl Lexer{
             }
             if self.comparator.contains(&c){
                 let mut j = i;
-                while j < input.len() && (self.comparator.contains(&input.chars().nth(j).unwrap()) || input.chars().nth(j).unwrap() == '='){
+                while j < chars.len() && (self.comparator.contains(&chars[j]) || chars[j] == '='){
                     j += 1;
                 }
-                tokens.push(Token::new_comparator(&input[i..j]));
+                tokens.push(Token::new_comparator(&chars[i..j].iter().collect::<String>()));
                 i = j;
                 continue;
             }
