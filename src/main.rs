@@ -50,7 +50,7 @@ fn terminal_loop(lexer: Lexer, parser: Parser, interpreter: &mut Interpreter){
         match parser.parse_instructions(tokens) {
             Ok(inst) => {
                 match interpreter.execute_instructions(&inst) {
-                    Ok(value) => println!("{:?}", value),
+                    Ok(_) => println!("{:?}", interpreter.variables),
                     Err(error) => print_error(&error),
                 };
             }
