@@ -271,6 +271,10 @@ fn test_line_feed(){
         Token::new_assign("="),
         Token::new_number("30")
     ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
 }
 
 
