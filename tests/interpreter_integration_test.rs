@@ -328,3 +328,35 @@ fn test_access_variable_in_condition_loop(){
         Err(e) => assert!(e._equals(&CustomError::new_variable_not_found_error("b")))
     }
 }
+
+#[test]
+fn test_condition_block_with_else_success(){
+    let mut interpreter = get_interpreter();
+    let affectation = Affectation::new("a", Box::new(IntegerValue::new(0)));
+    let _ = interpreter.execute(&affectation);
+    let condition = Condition::new(Box::new(IntegerValue::new(10)), Box::new(IntegerValue::new(100)), '<');
+    let affectation1 = Affectation::new("a", Box::new(IntegerValue::new(1)));
+    let affectation2 = Affectation::new("a", Box::new(IntegerValue::new(2)));
+    let condition_block = ConditionBlock::new_with_else(Box::new(condition), InstructionBlock::new(vec![Box::new(affectation1)]), InstructionBlock::new(vec![Box::new(affectation2)]));
+    let _ = interpreter.execute(&condition_block);
+    match interpreter._get_variable("a"){
+        Ok(v) => assert!(eq_values(&v,&Value::new_integer(1))),
+        Err(_) => assert!(false)
+    }
+}
+
+#[test]
+fn test_condition_block_with_else_fail(){
+    let mut interpreter = get_interpreter();
+    let affectation = Affectation::new("a", Box::new(IntegerValue::new(0)));
+    let _ = interpreter.execute(&affectation);
+    let condition = Condition::new(Box::new(IntegerValue::new(10)), Box::new(IntegerValue::new(100)), '>');
+    let affectation1 = Affectation::new("a", Box::new(IntegerValue::new(1)));
+    let affectation2 = Affectation::new("a", Box::new(IntegerValue::new(2)));
+    let condition_block = ConditionBlock::new_with_else(Box::new(condition), InstructionBlock::new(vec![Box::new(affectation1)]), InstructionBlock::new(vec![Box::new(affectation2)]));
+    let _ = interpreter.execute(&condition_block);
+    match interpreter._get_variable("a"){
+        Ok(v) => assert!(eq_values(&v,&Value::new_integer(2))),
+        Err(_) => assert!(false)
+    }
+}

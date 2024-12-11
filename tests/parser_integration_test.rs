@@ -78,4 +78,49 @@ fn test_condition_loop(){
 }
 
 
-
+#[test]
+fn test_condition_block_with_else(){
+    let parser = Parser::new();
+    let mut interpreter = Interpreter::new();
+    let tokens = vec![
+        Token::new_identifier("i"),
+        Token::new_assign("="),
+        Token::new_number("0"),
+        Token::new_semicolon(),
+        Token::new_keyword("if"),
+        Token::new_identifier("i"),
+        Token::new_comparator(">"),
+        Token::new_number("10"),
+        Token::new_bracket("{"),
+        Token::new_identifier("i"),
+        Token::new_assign("="),
+        Token::new_identifier("i"),
+        Token::new_operator("+"),
+        Token::new_number("1"),
+        Token::new_semicolon(),
+        Token::new_bracket("}"),
+        Token::new_keyword("else"),
+        Token::new_bracket("{"),
+        Token::new_identifier("i"),
+        Token::new_assign("="),
+        Token::new_number("30"),
+        Token::new_semicolon(),
+        Token::new_bracket("}"),
+        Token::new_semicolon()
+    ];
+    match parser.parse_instructions(tokens){
+        Ok(instructions) => {
+            match interpreter.execute_instructions(&instructions){
+                Ok(_) => {
+                    match interpreter._get_variable("i"){
+                        Ok(value) => assert!(eq_values(&value, &Value::Integer(30)))
+                        ,
+                        Err(_) => assert!(false)
+                    }
+                }
+                Err(_) => assert!(false)
+            }
+        },
+        Err(_) => assert!(false)
+    }
+}

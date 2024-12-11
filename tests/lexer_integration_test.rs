@@ -277,5 +277,36 @@ fn test_line_feed(){
     }
 }
 
-
-
+#[test]
+fn test_else(){
+    let lexer = Lexer::new();
+    let tokens = lexer.lex("if a > b { a = a + 1; } else { a = a - 1; };");
+    let expected_tokens = vec![
+        Token::new_keyword("if"),
+        Token::new_identifier("a"),
+        Token::new_comparator(">"),
+        Token::new_identifier("b"),
+        Token::new_bracket("{"),
+        Token::new_identifier("a"),
+        Token::new_assign("="),
+        Token::new_identifier("a"),
+        Token::new_operator("+"),
+        Token::new_number("1"),
+        Token::new_semicolon(),
+        Token::new_bracket("}"),
+        Token::new_keyword("else"),
+        Token::new_bracket("{"),
+        Token::new_identifier("a"),
+        Token::new_assign("="),
+        Token::new_identifier("a"),
+        Token::new_operator("-"),
+        Token::new_number("1"),
+        Token::new_semicolon(),
+        Token::new_bracket("}"),
+        Token::new_semicolon()
+    ];
+    match tokens {
+        Ok(tokens) => assert!(compare_tokens(tokens, expected_tokens)),
+        Err(_) => assert!(false)
+    }
+}

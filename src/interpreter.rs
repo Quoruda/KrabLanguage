@@ -229,12 +229,18 @@ pub struct Interpreter {
 pub struct ConditionBlock {
     conditions: Box<dyn Valuable>,
     instructions: InstructionBlock,
+    else_block: Option<InstructionBlock>,
 }
 
 impl ConditionBlock {
     pub fn new(conditions: Box<dyn Valuable>, instructions:InstructionBlock) -> ConditionBlock {
-        ConditionBlock{conditions, instructions}
+        ConditionBlock{conditions, instructions, else_block: None}
     }
+
+    pub fn new_with_else(conditions: Box<dyn Valuable>, instructions:InstructionBlock, else_block: InstructionBlock) -> ConditionBlock {
+        ConditionBlock{conditions, instructions, else_block: Some(else_block)}
+    }
+
 }
 
 pub struct InstructionBlock {
@@ -279,6 +285,11 @@ impl Instruction for ConditionBlock {
         }
         if condition {
             return self.instructions.execute(variables);
+        }
+
+        match &self.else_block {
+            Some(block) =>return block.execute(variables),
+            None => (),
         }
         return Ok(Value::Null())
     }

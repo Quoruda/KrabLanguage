@@ -60,7 +60,7 @@ impl Parser{
         }
     }
 
-    fn get_block(&self, tokens: Vec<Token>) -> Result<Vec<Box<dyn Instruction>>, CustomError>{
+    fn get_end_of_block(&self, tokens: Vec<Token>) -> Result<usize, CustomError>{
         let mut j = 0;
         let mut bracket_count = 0;
         while j < tokens.len() && (!tokens[j].equals(&Token::new_bracket("}")) || bracket_count != 0){
@@ -73,13 +73,13 @@ impl Parser{
         }
          if j == tokens.len(){
             return Err(CustomError::new_parser_error("'}' expected but none found"));
-        }else if j < tokens.len()-1{
-            return Err(CustomError::new_parser_error(&format!("Unexpected token after '}}': {}", tokens[j+1].get_value())));
         }
+        /*
         match self.parse_instructions(tokens[0..j].to_vec()){
             Ok(instructions) => return Ok(instructions),
             Err(error) => return Err(error),
-        }
+        }*/
+        return Ok(j);
     }
 
     pub fn parse_instructions(&self, tokens: Vec<Token>) -> Result<Vec<Box<dyn Instruction>>, CustomError>{
@@ -143,13 +143,51 @@ impl Parser{
                 Err(error) => return Err(error),
             }
             let instructions;
-            match self.get_block(tks[i+1..].to_vec()){
-                Ok(its) => instructions = its,
+            let mut j;
+            match self.get_end_of_block(tks[i+1..].to_vec()){
+                Ok(k) => {
+                    j = k+1+i;
+                    match self.parse_instructions(tks[i+1..j].to_vec()){
+                        Ok(its) => instructions = its,
+                        Err(error) => return Err(error),
+                    }
+                }
                 Err(error) => return Err(error),
             }
             if tokens[0].equals(&Token::new_keyword("while")){
+                if j < tks.len()-1{
+                    return Err(CustomError::new_parser_error(&format!("Unexpected token after '}}': {}", tokens[j+1].get_value())));
+                }
                 return Ok(Box::new(ConditionLoop::new(condition, InstructionBlock::new(instructions))));
             }else{
+                if j < tks.len()-1{
+                    if tks[j+1].equals(&Token::new_keyword("else")){
+                        j += 1;
+                        if j < tks.len()-1{
+                            j += 1;
+                            let instructions2;
+                            let k;
+                            match self.get_end_of_block(tks[j+1..].to_vec()){
+                                Ok(l) => {
+                                    k = l+1+j;
+                                    match self.parse_instructions(tks[j+1..k].to_vec()){
+                                        Ok(its) => instructions2 = its,
+                                        Err(error) => return Err(error),
+                                    }
+                                }
+                                Err(error) => return Err(error),
+                            }
+                            if k < tks.len()-1{
+                                return Err(CustomError::new_parser_error(&format!("Unexpected token after '}}': {}", tokens[k+1].get_value())));
+                            }
+                            return Ok(Box::new(ConditionBlock::new_with_else(condition, InstructionBlock::new(instructions), InstructionBlock::new(instructions2))));
+                        }else{
+                            return Err(CustomError::new_parser_error("Expected { after else"));
+                        }
+                    }else{
+                        return Err(CustomError::new_parser_error(&format!("Unexpected token after '}}': {}", tokens[j+1].get_value())));
+                    }
+                }
                 return Ok(Box::new(ConditionBlock::new(condition, InstructionBlock::new(instructions))));
             }
         }

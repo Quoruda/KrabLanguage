@@ -119,7 +119,7 @@ impl Lexer{
         Lexer{
             operators: vec!['+', '-', '*', '/'],
             comparator: vec!['>', '<'],
-            keywords: vec!["while".to_string(), "if".to_string()]
+            keywords: vec!["while".to_string(), "if".to_string(), "else".to_string()]
         }
     }
 
