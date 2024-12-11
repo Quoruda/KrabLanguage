@@ -1,7 +1,5 @@
-extern crate KrabLanguage;
-use KrabLanguage::interpreter::{StringValue, Interpreter, FloatValue, Variable, Affectation, Operation, IntegerValue, Condition, ConditionBlock, ConditionLoop, Instruction, Valuable};
-use KrabLanguage::value::Value;
-use KrabLanguage::errors::CustomError;
+extern crate krab_language;
+use krab_language::interpreter::{Interpreter, Variable, Affectation, Operation, IntegerValue, Condition, Instruction, Valuable};
 use std::time::Instant;
 
 /*
@@ -99,7 +97,7 @@ fn speed_test_get_value_of_variable(){
     let affectation = Affectation::new("a", Box::new(IntegerValue::new(0)));
     let _  = interpreter.execute(&affectation);
     let n = 1_000_000;
-    for i in 0..n{
+    for _ in 0..n{
         let instruction = Variable::new("a");
         instructions.push(Box::new(instruction));
     }
@@ -109,7 +107,7 @@ fn speed_test_get_value_of_variable(){
     println!("Get value of variable: {:?}", elapsed.as_secs_f64());
 }
 
-fn speed_test_get_value_of__basic_value(){
+fn speed_test_get_value_of_basic_value(){
     let mut interpreter = Interpreter::new();
     let mut instructions:Vec<Box<dyn Instruction>> = Vec::new();
     let n = 1_000_000;
@@ -142,7 +140,7 @@ fn time_test(){
     speed_test_operation();
     speed_test_affectation_with_existing_variable();
     speed_test_affectation_with_non_existing_variable();
-    speed_test_get_value_of__basic_value();
+    speed_test_get_value_of_basic_value();
     speed_test_get_value_of_variable();
     speed_test_condition();
 }

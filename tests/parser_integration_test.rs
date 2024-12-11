@@ -1,6 +1,5 @@
 extern crate krab_language;
-use krab_language::errors::CustomError;
-use krab_language::lexer::{Lexer, Token};
+use krab_language::lexer::Token;
 use krab_language::parser::Parser;
 use krab_language::interpreter::Interpreter;
 use krab_language::value::Value;
